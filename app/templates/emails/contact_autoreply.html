@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>We've received your message</title></head>
+<body style="font-family: Arial, sans-serif; background:#f5f8fb; padding:32px; color:#1e293b;">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+    <div style="background:linear-gradient(135deg,#0B74D1,#14B8A6);padding:28px 32px;">
+      <h1 style="color:#ffffff;font-size:20px;margin:0;">{{ clinic_name }}</h1>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="font-size:18px;margin-top:0;">Hi {{ contact_message.name }},</h2>
+      <p style="line-height:1.6;color:#475569;">
+        Thank you for contacting us. We have received your message and will get back to you shortly.
+      </p>
+      <p style="color:#64748b;margin-bottom:6px;">Your message</p>
+      <p style="line-height:1.6;color:#1e293b;white-space:pre-line;background:#f5f8fb;border-radius:12px;padding:16px;">{{ contact_message.message }}</p>
+      <p style="line-height:1.6;color:#475569;">
+        If your question is urgent, call us at {{ clinic_phone }}.
+      </p>
+      <p style="margin-top:32px;color:#94a3b8;font-size:13px;">{{ clinic_name }} &middot; {{ clinic_address }}</p>
+    </div>
+  </div>
+</body>
+</html>

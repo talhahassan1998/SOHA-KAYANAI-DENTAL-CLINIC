@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — {{ clinic_name }}{% endblock %}
+{% block meta_description %}{{ post.excerpt }}{% endblock %}
+
+{% block content %}
+<article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <nav class="text-xs text-slate-500 dark:text-slate-400 mb-6">
+    <a href="{{ url_for('blog.list_posts') }}" class="hover:text-primary">Blog</a> / <span class="text-slate-700 dark:text-slate-200">{{ post.title }}</span>
+  </nav>
+
+  <h1 class="font-heading text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white leading-snug tracking-wide">{{ post.title }}</h1>
+  <p class="mt-4 text-sm text-slate-400">{{ post.published_at.strftime('%B %d, %Y') if post.published_at else '' }} &middot; By {{ post.author }}</p>
+
+  <div class="mt-8 rounded-2xl overflow-hidden shadow-card aspect-[16/9]">
+    <img src="{{ post.cover_image_url }}" alt="{{ post.title }}" loading="lazy" class="w-full h-full object-cover">
+  </div>
+
+  <div class="mt-10 prose prose-slate dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 leading-relaxed">
+    <p>{{ post.content }}</p>
+  </div>
+
+  <div class="mt-12 bg-primary-50 dark:bg-slate-800/60 rounded-2xl p-8 text-center">
+    <h2 class="font-heading text-xl font-bold text-slate-900 dark:text-white">Have questions about this topic?</h2>
+    <a href="{{ url_for('appointments.book') }}" class="inline-flex mt-5 items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold px-6 py-3 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
+      Book a Consultation
+    </a>
+  </div>
+</article>
+
+{% if recent %}
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+  <h2 class="font-heading text-2xl font-bold text-slate-900 dark:text-white mb-8">More from the blog</h2>
+  <div class="grid md:grid-cols-3 gap-6">
+    {% for p in recent %}
+    <a href="{{ url_for('blog.detail', slug=p.slug) }}" class="group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-card hover-lift border border-slate-100 dark:border-slate-700">
+      <div class="aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-700">
+        <img src="{{ p.cover_image_url }}" alt="{{ p.title }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+      </div>
+      <div class="p-4">
+        <h3 class="font-heading font-semibold text-sm text-slate-900 dark:text-white group-hover:text-primary transition-colors">{{ p.title }}</h3>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

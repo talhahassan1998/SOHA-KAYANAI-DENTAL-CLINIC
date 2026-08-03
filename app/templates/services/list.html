@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import service_card %}
+{% block title %}Our Services — {{ clinic_name }}{% endblock %}
+
+{% block content %}
+<section class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:to-slate-800 py-16 lg:py-20">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
+    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Our Services</span>
+    <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-wide">Complete dental care under one roof</h1>
+    <p class="mt-5 text-slate-500 dark:text-slate-400">From routine prevention to full-scale reconstruction, every treatment is planned digitally and delivered by a specialist in that field.</p>
+  </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for service in services %}{{ service_card(service) }}{% endfor %}
+  </div>
+</section>
+{% endblock %}

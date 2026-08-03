@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>New Appointment Request</title></head>
+<body style="font-family: Arial, sans-serif; background:#f5f8fb; padding:32px; color:#1e293b;">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+    <div style="background:linear-gradient(135deg,#0B74D1,#14B8A6);padding:28px 32px;">
+      <h1 style="color:#ffffff;font-size:20px;margin:0;">New Appointment Request</h1>
+    </div>
+    <div style="padding:32px;">
+      <p style="line-height:1.6;color:#475569;">
+        A new appointment request was submitted on {{ clinic_name }}'s website.
+      </p>
+      <table style="width:100%;border-collapse:collapse;margin:24px 0;">
+        <tr><td style="padding:8px 0;color:#64748b;">Name</td><td style="padding:8px 0;font-weight:600;">{{ appointment.full_name }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Email</td><td style="padding:8px 0;font-weight:600;">{{ appointment.email }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Phone</td><td style="padding:8px 0;font-weight:600;">{{ appointment.phone }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Service</td><td style="padding:8px 0;font-weight:600;">{{ appointment.service.name if appointment.service else '-' }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Doctor</td><td style="padding:8px 0;font-weight:600;">{{ appointment.doctor.name if appointment.doctor else 'Any available doctor' }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Preferred Date</td><td style="padding:8px 0;font-weight:600;">{{ appointment.preferred_date }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Preferred Time</td><td style="padding:8px 0;font-weight:600;">{{ appointment.preferred_time }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;vertical-align:top;">Notes</td><td style="padding:8px 0;font-weight:600;">{{ appointment.notes or '-' }}</td></tr>
+      </table>
+      <div style="text-align:center;margin:28px 0 8px;">
+        <a href="{{ confirm_url }}" style="display:inline-block;background:#0B74D1;color:#ffffff;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:999px;">
+          Confirm this appointment
+        </a>
+      </div>
+      <div style="text-align:center;margin:0 0 8px;">
+        <a href="{{ cancel_url }}" style="display:inline-block;color:#64748b;font-weight:600;text-decoration:none;padding:10px 24px;border-radius:999px;border:1px solid #e2e8f0;font-size:14px;">
+          Cancel this request
+        </a>
+      </div>
+      <p style="line-height:1.6;color:#94a3b8;font-size:13px;text-align:center;">
+        Confirm emails the patient that their appointment is set. Cancel frees the time slot and lets the
+        patient know it couldn't be accommodated.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

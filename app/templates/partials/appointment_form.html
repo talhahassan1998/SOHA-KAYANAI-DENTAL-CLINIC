@@ -1,0 +1,254 @@
+{% macro render_appointment_form(form, action) -%}
+<form method="POST" action="{{ action }}" class="space-y-6" novalidate
+      x-data="appointmentScheduler('{{ form.preferred_date.data.isoformat() if form.preferred_date.data else '' }}', '{{ form.preferred_time.data or '' }}')">
+  {{ form.hidden_tag() }}
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Calendar -->
+    <div>
+      <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Select Date</label>
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 p-4">
+        <div class="flex items-center justify-between mb-4">
+          <button type="button" @click="prevMonth()" class="w-8 h-8 grid place-items-center rounded-full hover:bg-white dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="font-heading font-semibold text-sm text-slate-800 dark:text-white" x-text="monthLabel"></span>
+          <button type="button" @click="nextMonth()" class="w-8 h-8 grid place-items-center rounded-full hover:bg-white dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-slate-400 dark:text-slate-500 mb-1">
+          <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+        </div>
+        <div class="grid grid-cols-7 gap-1">
+          <template x-for="(cell, idx) in cells" :key="idx">
+            <button type="button"
+                    x-text="cell ? cell.day : ''"
+                    @click="cell && !cell.disabled && selectDate(cell)"
+                    :disabled="!cell || cell.disabled"
+                    :title="cell && cell.closed ? 'Sundays are emergency care only — please call us' : ''"
+                    :class="{
+                      'invisible': !cell,
+                      'bg-primary text-white font-bold shadow-soft': cell && cell.iso === selectedDate,
+                      'text-red-300 dark:text-red-500/50 line-through cursor-not-allowed': cell && cell.closed,
+                      'text-slate-300 dark:text-slate-700 cursor-not-allowed': cell && cell.disabled && !cell.closed,
+                      'hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer': cell && !cell.disabled && cell.iso !== selectedDate
+                    }"
+                    class="aspect-square rounded-lg text-xs sm:text-sm transition-colors"></button>
+          </template>
+        </div>
+        <p class="mt-3 flex items-start gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+          <span class="inline-block w-2 h-2 rounded-full bg-red-300 shrink-0 mt-1"></span>
+          <span>Sundays are unavailable — emergency care only, please call {{ clinic_phone }}</span>
+        </p>
+      </div>
+      {{ form.preferred_date(id=form.preferred_date.id, **{"x-model": "selectedDate", "class": "sr-only"}) }}
+      {% for error in form.preferred_date.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+
+      <div class="mt-5">
+        <label for="{{ form.notes.id }}" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Message (optional)</label>
+        {{ form.notes(class_="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none", rows="4", placeholder="Tell us about your symptoms or goals.") }}
+      </div>
+    </div>
+
+    <!-- Contact + time: locked until a bookable date is chosen (Sundays can't be selected) -->
+    <fieldset class="space-y-5 border-0 p-0 m-0 transition-opacity"
+              :disabled="!selectedDate"
+              :class="!selectedDate ? 'opacity-50' : ''">
+      <p x-show="!selectedDate" x-cloak class="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4 shrink-0"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Select a date to continue</span>
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="{{ form.full_name.id }}" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Full Name</label>
+          {{ form.full_name(class_="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary", placeholder="Ayesha Khan") }}
+          {% for error in form.full_name.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label for="{{ form.phone.id }}" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Phone Number</label>
+          {{ form.phone(class_="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary", placeholder="+92 300 1234567") }}
+          {% for error in form.phone.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+        </div>
+      </div>
+
+      <div>
+        <label for="{{ form.email.id }}" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Email Address</label>
+        {{ form.email(class_="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary", placeholder="ayesha@example.com") }}
+        {% for error in form.email.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="{{ form.service.id }}" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Service</label>
+          {{ form.service(class_="form-select w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary") }}
+          {% for error in form.service.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label for="{{ form.doctor.id }}" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Preferred Doctor</label>
+          {{ form.doctor(class_="form-select w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary") }}
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400">Select Time</label>
+          <span x-show="loadingSlots" class="text-xs text-slate-400">Checking availability…</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <template x-for="slot in timeSlots" :key="slot.value">
+            <button type="button"
+                    @click="!isUnavailable(slot.value) && (selectedTime = slot.value)"
+                    :disabled="isUnavailable(slot.value)"
+                    :title="isClosed(slot.value) ? 'We close at 4:30 PM on Saturdays'
+                            : (isTaken(slot.value) ? 'This time is already booked' : '')"
+                    x-text="slot.label"
+                    :class="isUnavailable(slot.value)
+                      ? 'bg-slate-100 dark:bg-slate-900/40 text-slate-300 dark:text-slate-600 border border-slate-100 dark:border-slate-800 line-through cursor-not-allowed'
+                      : (selectedTime === slot.value
+                        ? 'bg-primary text-white font-semibold shadow-soft'
+                        : 'bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 border border-slate-200 dark:border-slate-700')"
+                    class="rounded-xl py-2.5 text-xs sm:text-sm transition-colors"></button>
+          </template>
+        </div>
+        <p x-show="!loadingSlots && closedTimes.length" x-cloak class="text-xs text-slate-400 mt-2">
+          We close at 4:30 PM on Saturdays, so later times aren't available.
+        </p>
+        <p x-show="!loadingSlots && !closedTimes.length && selectedDate && takenTimes.length" x-cloak class="text-xs text-slate-400 mt-2">
+          Greyed-out times are already booked for this date.
+        </p>
+        {{ form.preferred_time(id=form.preferred_time.id, **{"x-model": "selectedTime", "class": "sr-only"}) }}
+        {% for error in form.preferred_time.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+    </fieldset>
+  </div>
+
+  <div class="flex items-start gap-3 rounded-xl bg-secondary-50 dark:bg-secondary-900/30 border border-secondary-200 dark:border-secondary-700 px-4 py-3 text-xs text-secondary-800 dark:text-secondary-100">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4 shrink-0 mt-0.5"><path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
+    <span>All times are in Pakistan Standard Time (PKT). We'll confirm your exact slot by email.</span>
+  </div>
+
+  <button type="submit"
+          :disabled="!selectedDate"
+          :class="!selectedDate
+            ? 'bg-slate-300 dark:bg-slate-700 text-white cursor-not-allowed'
+            : 'bg-primary hover:bg-primary-600 text-white shadow-soft hover:-translate-y-0.5'"
+          class="w-full font-semibold py-3.5 rounded-full transition-all">
+    Request Appointment
+  </button>
+</form>
+
+<script>
+function appointmentScheduler(initialDate, initialTime) {
+  const pad = (n) => String(n).padStart(2, "0");
+  const toISO = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const seed = initialDate ? new Date(initialDate + "T00:00:00") : today;
+
+  return {
+    selectedDate: initialDate || "",
+    selectedTime: initialTime || "",
+    viewYear: seed.getFullYear(),
+    viewMonth: seed.getMonth(),
+    cells: [],
+    monthLabel: "",
+    // Read straight off the real <select> so the buttons can never drift out of sync
+    // with TIME_SLOTS in app/forms.py (which is what the server validates against).
+    timeSlots: [...(document.getElementById("{{ form.preferred_time.id }}")?.options ?? [])]
+      .filter((option) => option.value)
+      .map((option) => ({ value: option.value, label: option.text.toLowerCase() })),
+
+    takenTimes: [],
+    closedTimes: [],
+    loadingSlots: false,
+    init() {
+      this.buildMonth();
+
+      const doctorSelect = document.getElementById("{{ form.doctor.id }}");
+      if (doctorSelect) {
+        doctorSelect.addEventListener("change", () => this.fetchAvailability());
+      }
+      this.$watch("selectedDate", () => this.fetchAvailability());
+
+      if (this.selectedDate) this.fetchAvailability();
+    },
+
+    isTaken(value) {
+      return this.takenTimes.includes(value);
+    },
+
+    isClosed(value) {
+      return this.closedTimes.includes(value);
+    },
+
+    isUnavailable(value) {
+      return this.isTaken(value) || this.isClosed(value);
+    },
+
+    async fetchAvailability() {
+      if (!this.selectedDate) {
+        this.takenTimes = [];
+        this.closedTimes = [];
+        return;
+      }
+      const doctorSelect = document.getElementById("{{ form.doctor.id }}");
+      const doctorId = doctorSelect ? doctorSelect.value : "";
+
+      const params = new URLSearchParams({ date: this.selectedDate });
+      if (doctorId && doctorId !== "0") params.set("doctor_id", doctorId);
+
+      this.loadingSlots = true;
+      try {
+        const res = await fetch(`{{ url_for('appointments.availability') }}?${params}`);
+        if (!res.ok) throw new Error("availability request failed");
+        const data = await res.json();
+        this.takenTimes = data.taken || [];
+        this.closedTimes = data.closed || [];
+        // Drop a selection that just became unavailable.
+        if (this.selectedTime && this.isUnavailable(this.selectedTime)) this.selectedTime = "";
+      } catch (err) {
+        // Fall back to showing every slot; the server re-validates on submit anyway.
+        this.takenTimes = [];
+        this.closedTimes = [];
+      } finally {
+        this.loadingSlots = false;
+      }
+    },
+
+    buildMonth() {
+      const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      this.monthLabel = `${monthNames[this.viewMonth]} ${this.viewYear}`;
+
+      const firstOfMonth = new Date(this.viewYear, this.viewMonth, 1);
+      const daysInMonth = new Date(this.viewYear, this.viewMonth + 1, 0).getDate();
+      const leadingBlanks = firstOfMonth.getDay();
+
+      const cells = [];
+      for (let i = 0; i < leadingBlanks; i++) cells.push(null);
+      for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(this.viewYear, this.viewMonth, day);
+        const closed = d.getDay() === 0;  // Sunday: emergency care only, no online booking
+        cells.push({ day, iso: toISO(d), closed, disabled: d < today || closed });
+      }
+      this.cells = cells;
+    },
+
+    prevMonth() {
+      this.viewMonth -= 1;
+      if (this.viewMonth < 0) { this.viewMonth = 11; this.viewYear -= 1; }
+      this.buildMonth();
+    },
+    nextMonth() {
+      this.viewMonth += 1;
+      if (this.viewMonth > 11) { this.viewMonth = 0; this.viewYear += 1; }
+      this.buildMonth();
+    },
+    selectDate(cell) {
+      this.selectedDate = cell.iso;
+    },
+  };
+}
+</script>
+{%- endmacro %}

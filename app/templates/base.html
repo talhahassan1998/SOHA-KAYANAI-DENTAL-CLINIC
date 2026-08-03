@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))" :class="{ 'dark': darkMode }">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{{ clinic_name }} — Premium Dental Care{% endblock %}</title>
+<meta name="description" content="{% block meta_description %}{{ clinic_name }} offers premium, modern dental care including implants, whitening, orthodontics, and cosmetic dentistry.{% endblock %}">
+<link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: '#0B74D1', 50: '#EAF3FC', 100: '#D0E5F8', 200: '#A1CBF1', 300: '#72B1EA', 400: '#4397E3', 500: '#0B74D1', 600: '#095EA8', 700: '#07477F', 800: '#053056', 900: '#02182D' },
+          secondary: { DEFAULT: '#14B8A6', 50: '#E7FAF8', 100: '#C6F3EE', 200: '#8EE7DD', 300: '#56DBCC', 400: '#2CC9B7', 500: '#14B8A6', 600: '#109385', 700: '#0C6E64', 800: '#084A43', 900: '#042521' },
+        },
+        fontFamily: {
+          heading: ['Poppins', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+        },
+        boxShadow: {
+          soft: '0 10px 40px -10px rgba(11, 116, 209, 0.15)',
+          card: '0 4px 24px -4px rgba(15, 23, 42, 0.08)',
+        },
+        animation: {
+          'fade-up': 'fadeUp 0.6s ease-out forwards',
+          'float': 'float 6s ease-in-out infinite',
+        },
+        keyframes: {
+          fadeUp: { '0%': { opacity: 0, transform: 'translateY(20px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+          float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-12px)' } },
+        },
+      },
+    },
+  };
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block extra_head %}{% endblock %}
+</head>
+<body class="font-body text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 antialiased transition-colors duration-300">
+
+{% include "partials/navbar.html" %}
+{% include "partials/flash_messages.html" %}
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+{% include "partials/footer.html" %}
+{% include "partials/whatsapp_button.html" %}
+{% include "partials/back_to_top.html" %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

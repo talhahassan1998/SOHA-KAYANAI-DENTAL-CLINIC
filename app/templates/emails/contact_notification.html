@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>New Contact Message</title></head>
+<body style="font-family: Arial, sans-serif; background:#f5f8fb; padding:32px; color:#1e293b;">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+    <div style="background:linear-gradient(135deg,#0B74D1,#14B8A6);padding:28px 32px;">
+      <h1 style="color:#ffffff;font-size:20px;margin:0;">New Contact Message</h1>
+    </div>
+    <div style="padding:32px;">
+      <p style="line-height:1.6;color:#475569;">
+        A new message was submitted through {{ clinic_name }}'s contact form.
+      </p>
+      <table style="width:100%;border-collapse:collapse;margin:24px 0;">
+        <tr><td style="padding:8px 0;color:#64748b;">Name</td><td style="padding:8px 0;font-weight:600;">{{ contact_message.name }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Email</td><td style="padding:8px 0;font-weight:600;">{{ contact_message.email }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Phone</td><td style="padding:8px 0;font-weight:600;">{{ contact_message.phone or '-' }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Subject</td><td style="padding:8px 0;font-weight:600;">{{ contact_message.subject or '-' }}</td></tr>
+      </table>
+      <p style="color:#64748b;margin-bottom:6px;">Message</p>
+      <p style="line-height:1.6;color:#1e293b;white-space:pre-line;background:#f5f8fb;border-radius:12px;padding:16px;">{{ contact_message.message }}</p>
+      <p style="margin-top:28px;">
+        <a href="mailto:{{ contact_message.email }}" style="display:inline-block;background:#0B74D1;color:#ffffff;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:999px;">
+          Reply to {{ contact_message.name.split(' ')[0] }}
+        </a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

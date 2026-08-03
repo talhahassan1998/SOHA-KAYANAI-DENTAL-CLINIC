@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import faq_item %}
+{% block title %}FAQs — {{ clinic_name }}{% endblock %}
+
+{% block content %}
+<section class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:to-slate-800 py-16 lg:py-20">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
+    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">FAQs</span>
+    <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-wide">Frequently asked questions</h1>
+    <p class="mt-5 text-slate-500 dark:text-slate-400">Answers to what patients ask us most. Can't find yours? Reach out anytime.</p>
+  </div>
+</section>
+
+<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16" x-data="{ activeCategory: 'All' }">
+  <div class="flex flex-wrap justify-center gap-2 mb-10">
+    <button @click="activeCategory = 'All'" :class="activeCategory === 'All' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'" class="px-4 py-2 rounded-full text-sm font-semibold transition">All</button>
+    {% for cat in categories %}
+    <button @click="activeCategory = '{{ cat }}'" :class="activeCategory === '{{ cat }}' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'" class="px-4 py-2 rounded-full text-sm font-semibold transition">{{ cat }}</button>
+    {% endfor %}
+  </div>
+
+  <div class="space-y-4">
+    {% for faq in faqs %}
+    <div x-show="activeCategory === 'All' || activeCategory === '{{ faq.category }}'" x-transition>
+      {{ faq_item(faq, loop.index0) }}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="text-center mt-14 bg-primary-50 dark:bg-slate-800/60 rounded-3xl p-10">
+    <h2 class="font-heading text-2xl font-bold text-slate-900 dark:text-white">Still have questions?</h2>
+    <p class="mt-2 text-slate-500 dark:text-slate-400">Our front desk is happy to help.</p>
+    <a href="{{ url_for('main.contact') }}" class="inline-flex mt-6 items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold px-7 py-3.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
+      Contact Us
+    </a>
+  </div>
+</section>
+{% endblock %}

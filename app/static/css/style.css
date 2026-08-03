@@ -1,0 +1,84 @@
+[x-cloak] { display: none !important; }
+
+html { scroll-behavior: smooth; }
+
+::selection { background-color: #0B74D1; color: #fff; }
+
+.section-eyebrow {
+  letter-spacing: 0.08em;
+}
+
+/* Card hover lift */
+.hover-lift { transition: transform .35s ease, box-shadow .35s ease; }
+.hover-lift:hover { transform: translateY(-6px); }
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.dark .glass {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Loading skeleton shimmer for lazy images */
+img.lazy-fade {
+  opacity: 0;
+  transition: opacity .5s ease;
+}
+img.lazy-fade.loaded {
+  opacity: 1;
+}
+
+/* Simple fade-in-on-scroll utility, toggled via IntersectionObserver in main.js */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Custom scrollbar for testimonial/gallery strips */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Focus visibility for accessibility */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid #14B8A6;
+  outline-offset: 2px;
+}
+
+/* Custom select styling: reset native arrow, add themed chevron + option colors */
+select.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  background-size: 1rem;
+  padding-right: 2.75rem;
+}
+.dark select.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+select.form-select option {
+  background-color: #ffffff;
+  color: #334155;
+  padding: 0.5rem;
+}
+.dark select.form-select option {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+select.form-select option:checked,
+select.form-select option:hover {
+  background-color: #0B74D1;
+  color: #ffffff;
+}
