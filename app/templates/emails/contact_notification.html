@@ -18,9 +18,30 @@
       </table>
       <p style="color:#64748b;margin-bottom:6px;">Message</p>
       <p style="line-height:1.6;color:#1e293b;white-space:pre-line;background:#f5f8fb;border-radius:12px;padding:16px;">{{ contact_message.message }}</p>
+      {%- set first_name = contact_message.name.split(' ')[0] -%}
+      {%- set reply_subject = 'Re: ' ~ (contact_message.subject or 'Your enquiry') ~ ' — ' ~ clinic_name -%}
+      {%- set quoted_message = contact_message.message | replace('\r\n', '\n') | replace('\n', '\n> ') | safe -%}
+      {%- set reply_body -%}
+Dear {{ first_name }},
+
+Thank you for contacting {{ clinic_name }}.
+
+[Write your reply here]
+
+If you would like to book an appointment or discuss this over the phone, you can reach us at {{ clinic_phone }}.
+
+Kind regards,
+{{ clinic_name }}
+{{ clinic_phone }}
+
+-------------------------------------
+On {{ contact_message.created_at.strftime('%d %b %Y') }}, {{ contact_message.name }} wrote:
+
+> {{ quoted_message }}
+      {%- endset -%}
       <p style="margin-top:28px;">
-        <a href="mailto:{{ contact_message.email }}" style="display:inline-block;background:#0B74D1;color:#ffffff;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:999px;">
-          Reply to {{ contact_message.name.split(' ')[0] }}
+        <a href="mailto:{{ contact_message.email }}?subject={{ reply_subject | urlencode }}&amp;body={{ reply_body | urlencode }}" style="display:inline-block;background:#0B74D1;color:#ffffff;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:999px;">
+          Reply to {{ first_name }}
         </a>
       </p>
     </div>
