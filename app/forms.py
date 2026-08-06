@@ -5,7 +5,11 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, DateField
 from wtforms.validators import DataRequired, Email, Length, Regexp, Optional, ValidationError
 
+from app.models import Gender
+
 PHONE_REGEX = r"^[\d\s\-\+\(\)]{7,20}$"
+
+GENDER_CHOICES = [("", "Select gender")] + [(value, Gender.LABELS[value]) for value in Gender.CHOICES]
 
 # Clinic hours are 9:00 AM – 7:00 PM with a 1:00 – 2:00 PM break, so the last bookable
 # slot starts at 6:30 PM. Keep this in sync with the opening hours shown on the site.
@@ -44,6 +48,7 @@ class AppointmentForm(FlaskForm):
     preferred_date = DateField("Preferred Date", validators=[DataRequired(), not_in_past])
     preferred_time = SelectField("Preferred Time", choices=TIME_SLOTS, validators=[DataRequired(message="Please select a time.")])
     full_name = StringField("Full Name", validators=[DataRequired(), Length(min=2, max=160)])
+    gender = SelectField("Gender", choices=GENDER_CHOICES, validators=[DataRequired(message="Please select a gender.")])
     phone = StringField("Phone Number", validators=[DataRequired(), Regexp(PHONE_REGEX, message="Enter a valid phone number.")])
     email = StringField("Email Address", validators=[DataRequired(), Email(), Length(max=255)])
     notes = TextAreaField("Message (optional)", validators=[Optional(), Length(max=1000)])

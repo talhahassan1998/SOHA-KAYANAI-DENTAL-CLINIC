@@ -69,6 +69,7 @@ def book():
             full_name=form.full_name.data.strip(),
             email=form.email.data.strip().lower(),
             phone=form.phone.data.strip(),
+            gender=form.gender.data,
             service_id=form.service.data,
             doctor_id=doctor_id,
             preferred_date=form.preferred_date.data,

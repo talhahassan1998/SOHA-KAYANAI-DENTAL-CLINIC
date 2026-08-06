@@ -77,7 +77,7 @@ pass "GET /api/v1/services returned service_id=$service_id"
 future_date=$("$PY" -c "import datetime; print((datetime.date.today()+datetime.timedelta(days=14)).isoformat())")
 resp=$(curl -s -w '\n%{http_code}' -X POST "$BASE/api/v1/appointments" \
   -H "Content-Type: application/json" \
-  -d "{\"full_name\":\"Smoke Test\",\"email\":\"smoke@example.com\",\"phone\":\"03001234567\",\"service_id\":$service_id,\"preferred_date\":\"$future_date\",\"preferred_time\":\"11:00\"}")
+  -d "{\"full_name\":\"Smoke Test\",\"email\":\"smoke@example.com\",\"phone\":\"03001234567\",\"gender\":\"prefer_not_to_say\",\"service_id\":$service_id,\"preferred_date\":\"$future_date\",\"preferred_time\":\"11:00\"}")
 code=$(echo "$resp" | tail -1)
 body=$(echo "$resp" | sed '$d')
 [ "$code" = "201" ] || { echo "$body"; fail "POST /api/v1/appointments -> $code (expected 201)"; }

@@ -55,6 +55,32 @@ class AppointmentStatus:
     CHOICES = [PENDING, CONFIRMED, CANCELLED]
 
 
+class Gender:
+    """Stored as short constants rather than a native enum, matching AppointmentStatus.
+
+    The column is nullable because appointments booked before this field existed have no
+    value; new bookings are required to pick one (enforced in the form and the API).
+    """
+
+    FEMALE = "female"
+    MALE = "male"
+    OTHER = "other"
+    PREFER_NOT_TO_SAY = "prefer_not_to_say"
+
+    CHOICES = [FEMALE, MALE, OTHER, PREFER_NOT_TO_SAY]
+
+    LABELS = {
+        FEMALE: "Female",
+        MALE: "Male",
+        OTHER: "Other",
+        PREFER_NOT_TO_SAY: "Prefer not to say",
+    }
+
+    @classmethod
+    def label(cls, value):
+        return cls.LABELS.get(value, "Not specified")
+
+
 class Appointment(db.Model, TimestampMixin):
     __tablename__ = "appointments"
 
@@ -62,6 +88,7 @@ class Appointment(db.Model, TimestampMixin):
     full_name = db.Column(db.String(160), nullable=False)
     email = db.Column(db.String(255), nullable=False, index=True)
     phone = db.Column(db.String(40), nullable=False)
+    gender = db.Column(db.String(20))
 
     service_id = db.Column(db.Integer, db.ForeignKey("services.id"), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey("doctors.id"), nullable=True)

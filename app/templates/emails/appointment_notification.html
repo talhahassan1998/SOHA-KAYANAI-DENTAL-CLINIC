@@ -14,6 +14,7 @@
         <tr><td style="padding:8px 0;color:#64748b;">Name</td><td style="padding:8px 0;font-weight:600;">{{ appointment.full_name }}</td></tr>
         <tr><td style="padding:8px 0;color:#64748b;">Email</td><td style="padding:8px 0;font-weight:600;">{{ appointment.email }}</td></tr>
         <tr><td style="padding:8px 0;color:#64748b;">Phone</td><td style="padding:8px 0;font-weight:600;">{{ appointment.phone }}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Gender</td><td style="padding:8px 0;font-weight:600;">{{ gender_label(appointment.gender) }}</td></tr>
         <tr><td style="padding:8px 0;color:#64748b;">Service</td><td style="padding:8px 0;font-weight:600;">{{ appointment.service.name if appointment.service else '-' }}</td></tr>
         <tr><td style="padding:8px 0;color:#64748b;">Doctor</td><td style="padding:8px 0;font-weight:600;">{{ appointment.doctor.name if appointment.doctor else 'Any available doctor' }}</td></tr>
         <tr><td style="padding:8px 0;color:#64748b;">Preferred Date</td><td style="padding:8px 0;font-weight:600;">{{ appointment.preferred_date }}</td></tr>

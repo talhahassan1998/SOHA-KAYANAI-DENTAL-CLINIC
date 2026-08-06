@@ -92,7 +92,7 @@ dental_clinic/
   ```bash
   curl -X POST http://127.0.0.1:5000/api/v1/appointments \
     -H "Content-Type: application/json" \
-    -d '{"full_name":"Jane Doe","email":"jane@example.com","phone":"+14155550100","service_id":1,"preferred_date":"2026-09-01","preferred_time":"10:00 AM"}'
+    -d '{"full_name":"Jane Doe","email":"jane@example.com","phone":"+14155550100","gender":"female","service_id":1,"preferred_date":"2026-09-01","preferred_time":"10:00 AM"}'
   ```
 
 ## Production Deployment

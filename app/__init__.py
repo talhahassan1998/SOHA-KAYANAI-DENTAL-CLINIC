@@ -83,6 +83,13 @@ def register_context_processors(app):
         }
 
     @app.context_processor
+    def inject_gender_label():
+        # Appointments predating the gender field have no value, so templates need a helper
+        # that renders those as "Not specified" rather than a blank cell.
+        from app.models import Gender
+        return {"gender_label": Gender.label}
+
+    @app.context_processor
     def inject_newsletter_form():
         from app.forms import NewsletterForm
         return {"newsletter_form": NewsletterForm()}

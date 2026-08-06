@@ -4,7 +4,7 @@ from flask_restx import Namespace, Resource, fields
 from email_validator import validate_email, EmailNotValidError
 
 from app.extensions import db
-from app.models import Appointment, Service, Doctor
+from app.models import Appointment, Service, Doctor, Gender
 from app.utils.email import send_appointment_confirmation, send_appointment_notification
 from app.utils.scheduling import is_slot_in_past
 
@@ -14,6 +14,7 @@ appointment_input = ns.model("AppointmentInput", {
     "full_name": fields.String(required=True, max_length=160),
     "email": fields.String(required=True),
     "phone": fields.String(required=True, max_length=40),
+    "gender": fields.String(required=True, enum=Gender.CHOICES),
     "service_id": fields.Integer(required=True),
     "doctor_id": fields.Integer(required=False, description="Omit for any available doctor"),
     "preferred_date": fields.String(required=True, description="YYYY-MM-DD"),
@@ -26,6 +27,7 @@ appointment_output = ns.model("AppointmentOutput", {
     "full_name": fields.String,
     "email": fields.String,
     "phone": fields.String,
+    "gender": fields.String,
     "service_id": fields.Integer,
     "doctor_id": fields.Integer,
     "preferred_date": fields.String,
@@ -47,6 +49,10 @@ class AppointmentCreate(Resource):
             validate_email(data["email"], check_deliverability=False)
         except EmailNotValidError:
             ns.abort(400, "Invalid email address")
+
+        # `gender` is constrained by enum= on the input model, so @ns.expect(validate=True)
+        # has already rejected anything outside Gender.CHOICES before we get here.
+        gender = data["gender"]
 
         service = Service.query.get(data["service_id"])
         if not service:
@@ -71,6 +77,7 @@ class AppointmentCreate(Resource):
             full_name=data["full_name"].strip(),
             email=data["email"].strip().lower(),
             phone=data["phone"].strip(),
+            gender=gender,
             service_id=service.id,
             doctor_id=doctor_id or None,
             preferred_date=preferred_date,

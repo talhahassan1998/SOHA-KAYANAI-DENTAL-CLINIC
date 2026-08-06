@@ -1,6 +1,6 @@
 {% macro render_appointment_form(form, action) -%}
 <form method="POST" action="{{ action }}" class="space-y-6" novalidate
-      x-data="appointmentScheduler('{{ form.preferred_date.data.isoformat() if form.preferred_date.data else '' }}', '{{ form.preferred_time.data or '' }}')">
+      x-data="appointmentScheduler('{{ form.preferred_date.data.isoformat() if form.preferred_date.data else '' }}', '{{ form.preferred_time.data or '' }}', '{{ form.gender.data or '' }}')">
   {{ form.hidden_tag() }}
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -78,6 +78,23 @@
         {% for error in form.email.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
       </div>
 
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Gender</label>
+        <div class="flex flex-wrap gap-2">
+          <template x-for="option in genderOptions" :key="option.value">
+            <button type="button"
+                    @click="selectedGender = option.value"
+                    x-text="option.label"
+                    :class="selectedGender === option.value
+                      ? 'bg-primary text-white font-semibold shadow-soft border border-primary'
+                      : 'bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 border border-slate-200 dark:border-slate-700'"
+                    class="rounded-xl px-4 py-2.5 text-xs sm:text-sm transition-colors"></button>
+          </template>
+        </div>
+        {{ form.gender(id=form.gender.id, **{"x-model": "selectedGender", "class": "sr-only"}) }}
+        {% for error in form.gender.errors %}<p class="text-xs text-red-500 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label for="{{ form.service.id }}" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Service</label>
@@ -147,7 +164,7 @@
 </form>
 
 <script>
-function appointmentScheduler(initialDate, initialTime) {
+function appointmentScheduler(initialDate, initialTime, initialGender) {
   const pad = (n) => String(n).padStart(2, "0");
   const toISO = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
@@ -158,6 +175,12 @@ function appointmentScheduler(initialDate, initialTime) {
   return {
     selectedDate: initialDate || "",
     selectedTime: initialTime || "",
+    selectedGender: initialGender || "",
+    // Same trick as timeSlots: read the real <select> so the pills can't drift out of sync
+    // with GENDER_CHOICES in app/forms.py, which is what the server validates against.
+    genderOptions: [...(document.getElementById("{{ form.gender.id }}")?.options ?? [])]
+      .filter((option) => option.value)
+      .map((option) => ({ value: option.value, label: option.text })),
     viewYear: seed.getFullYear(),
     viewMonth: seed.getMonth(),
     cells: [],
