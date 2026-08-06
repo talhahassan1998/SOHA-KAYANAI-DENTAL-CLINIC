@@ -1,3 +1,8 @@
+// Users who ask their OS to reduce motion get the end state immediately, never the travel.
+// The CSS media query handles the visual side; this flag short-circuits the JS-driven
+// animations (counters, stagger delays) that CSS alone can't reach.
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 // Back-to-top button visibility
 (function backToTop() {
   const btn = document.getElementById("back-to-top");
@@ -19,6 +24,12 @@
 
   const animate = (el) => {
     const target = parseInt(el.getAttribute("data-counter"), 10) || 0;
+
+    if (prefersReducedMotion) {
+      el.textContent = target.toLocaleString();
+      return;
+    }
+
     const duration = 1600;
     const start = performance.now();
 
@@ -51,6 +62,25 @@
 (function scrollReveal() {
   const items = document.querySelectorAll(".reveal");
   if (!items.length) return;
+
+  // Reduced motion: show everything up front and skip the observer entirely.
+  if (prefersReducedMotion) {
+    items.forEach((el) => el.classList.add("in-view"));
+    return;
+  }
+
+  // Inside a .stagger container, children cascade rather than landing together. The cap
+  // stops a long grid (say 12 blog cards) from leaving the last item a second behind.
+  const STEP_MS = 80;
+  const MAX_DELAY_MS = 480;
+  document.querySelectorAll(".stagger").forEach((group) => {
+    [...group.children].forEach((child, i) => {
+      if (child.classList.contains("reveal")) {
+        child.style.setProperty("--reveal-delay", `${Math.min(i * STEP_MS, MAX_DELAY_MS)}ms`);
+      }
+    });
+  });
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {

@@ -21,7 +21,7 @@
   <p class="text-sm text-slate-500 dark:text-slate-400 mb-8">{{ posts|length }} result(s) for "<span class="font-semibold text-slate-700 dark:text-slate-200">{{ query }}</span>"</p>
   {% endif %}
 
-  <div class="grid md:grid-cols-2 gap-8">
+  <div class="stagger grid md:grid-cols-2 gap-8">
     {% for post in posts %}
     <a href="{{ url_for('blog.detail', slug=post.slug) }}" class="reveal group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-card hover-lift border border-slate-100 dark:border-slate-700">
       <div class="aspect-[16/9] overflow-hidden bg-slate-100 dark:bg-slate-700">

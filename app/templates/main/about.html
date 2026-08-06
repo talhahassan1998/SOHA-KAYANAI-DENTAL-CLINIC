@@ -45,7 +45,7 @@
     <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Our Values</span>
     <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">What guides every appointment</h2>
   </div>
-  <div class="mt-12 grid sm:grid-cols-3 gap-6">
+  <div class="stagger mt-12 grid sm:grid-cols-3 gap-6">
     {% for title, desc in [
       ("Evidence First", "Every recommendation is backed by current clinical research, not upsell targets."),
       ("Radical Transparency", "You'll see your own scans, understand every cost, and never be rushed into a decision."),
@@ -65,7 +65,7 @@
       <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Our Team</span>
       <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Meet the specialists</h2>
     </div>
-    <div class="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {% for doctor in doctors %}{{ doctor_card(doctor) }}{% endfor %}
     </div>
   </div>

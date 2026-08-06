@@ -44,6 +44,94 @@ img.lazy-fade.loaded {
   transform: translateY(0);
 }
 
+/* Stagger: siblings inside a .stagger container cascade instead of all arriving at once.
+   main.js sets --reveal-delay per item; the cap in JS keeps late items from lagging. */
+.stagger > .reveal {
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+/* Directional reveal variants, for alternating/side-entering sections. */
+.reveal-left  { transform: translateX(-32px); }
+.reveal-right { transform: translateX(32px); }
+.reveal-scale { transform: scale(.94); }
+.reveal-left.in-view,
+.reveal-right.in-view { transform: translateX(0); }
+.reveal-scale.in-view { transform: scale(1); }
+
+/* Success checkmark on the booking confirmation: the badge pops, then the tick draws itself. */
+@keyframes successPop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes drawCheck {
+  to { stroke-dashoffset: 0; }
+}
+.success-pop { animation: successPop .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+.success-check path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: drawCheck .4s ease-out .35s forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .success-check path { stroke-dashoffset: 0; animation: none; }
+}
+
+/* Subtle page-load fade so content doesn't snap in on first paint. */
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.page-fade { animation: pageFadeIn .4s ease-out both; }
+
+/* Underline that grows from the left on hover — used on nav links. */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 2px;
+  width: 100%;
+  background-color: #0B74D1;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .3s ease;
+}
+.link-underline:hover::after,
+.link-underline[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* Accessibility: honour the OS "reduce motion" preference. Content stays fully visible —
+   it simply appears without travel. Overrides every motion utility above, plus Tailwind's
+   animate-* keyframes and the smooth scrolling on <html>. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .reveal,
+  .reveal-left,
+  .reveal-right,
+  .reveal-scale {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .stagger > .reveal { transition-delay: 0ms; }
+
+  .hover-lift:hover { transform: none; }
+  .link-underline::after { transition: none; }
+
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Custom scrollbar for testimonial/gallery strips */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

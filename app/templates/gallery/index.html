@@ -18,7 +18,7 @@
     {% endfor %}
   </div>
 
-  <div x-data="{ open: false, activeImg: '', activeCaption: '' }" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div x-data="{ open: false, activeImg: '', activeCaption: '' }" class="stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for img in images %}
     <button type="button" @click="open = true; activeImg = '{{ img.after_image_url or img.before_image_url }}'; activeCaption = '{{ img.caption }}'"
             class="reveal group relative rounded-2xl overflow-hidden shadow-card hover-lift text-left">

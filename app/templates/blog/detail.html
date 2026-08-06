@@ -30,7 +30,7 @@
 {% if recent %}
 <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
   <h2 class="font-heading text-2xl font-bold text-slate-900 dark:text-white mb-8">More from the blog</h2>
-  <div class="grid md:grid-cols-3 gap-6">
+  <div class="stagger grid md:grid-cols-3 gap-6">
     {% for p in recent %}
     <a href="{{ url_for('blog.detail', slug=p.slug) }}" class="group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-card hover-lift border border-slate-100 dark:border-slate-700">
       <div class="aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-700">
