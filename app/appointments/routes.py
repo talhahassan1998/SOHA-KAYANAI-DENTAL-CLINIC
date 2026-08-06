@@ -8,7 +8,9 @@ from app.extensions import db
 from app.forms import AppointmentForm, TIME_SLOTS
 from app.models import Appointment, AppointmentStatus, Service, Doctor
 from app.utils.availability import taken_times, is_slot_available
-from app.utils.scheduling import is_closed_day, is_slot_within_hours, out_of_hours_times
+from app.utils.scheduling import (
+    is_closed_day, is_slot_within_hours, out_of_hours_times, is_slot_in_past, past_times,
+)
 from app.utils.email import (
     send_appointment_confirmation, send_appointment_notification,
     send_appointment_confirmed, send_appointment_cancelled,
@@ -47,6 +49,14 @@ def book():
             ]
             return render_template("appointments/book.html", form=form)
 
+        # A slot earlier today can't be booked. Worth re-checking on submit even though the
+        # UI greys these out: the form may have sat open until the slot passed.
+        if is_slot_in_past(form.preferred_date.data, form.preferred_time.data):
+            form.preferred_time.errors = list(form.preferred_time.errors) + [
+                "That time has already passed today. Please choose a later time or another day."
+            ]
+            return render_template("appointments/book.html", form=form)
+
         # Re-check server-side: the disabled slots in the UI can be bypassed, and another
         # patient may have taken this slot between page load and submit.
         if not is_slot_available(form.preferred_date.data, form.preferred_time.data, doctor_id):
@@ -81,7 +91,8 @@ def book():
 
 @appointments_bp.route("/availability")
 def availability():
-    """Slots that can't be booked on a date: already taken, or outside that day's hours."""
+    """Slots that can't be booked on a date: already taken, outside that day's hours, or
+    (for today) already passed."""
     try:
         preferred_date = datetime.strptime(request.args.get("date", ""), "%Y-%m-%d").date()
     except ValueError:
@@ -92,6 +103,7 @@ def availability():
     return jsonify({
         "taken": sorted(taken_times(preferred_date, doctor_id)),
         "closed": sorted(out_of_hours_times(preferred_date, all_slots)),
+        "past": sorted(past_times(preferred_date, all_slots)),
     })
 
 

@@ -100,8 +100,9 @@
             <button type="button"
                     @click="!isUnavailable(slot.value) && (selectedTime = slot.value)"
                     :disabled="isUnavailable(slot.value)"
-                    :title="isClosed(slot.value) ? 'We close at 4:30 PM on Saturdays'
-                            : (isTaken(slot.value) ? 'This time is already booked' : '')"
+                    :title="isPast(slot.value) ? 'This time has already passed today'
+                            : (isClosed(slot.value) ? 'We close at 4:30 PM on Saturdays'
+                            : (isTaken(slot.value) ? 'This time is already booked' : ''))"
                     x-text="slot.label"
                     :class="isUnavailable(slot.value)
                       ? 'bg-slate-100 dark:bg-slate-900/40 text-slate-300 dark:text-slate-600 border border-slate-100 dark:border-slate-800 line-through cursor-not-allowed'
@@ -111,10 +112,17 @@
                     class="rounded-xl py-2.5 text-xs sm:text-sm transition-colors"></button>
           </template>
         </div>
+        <p x-show="!loadingSlots && allSlotsPast" x-cloak class="text-xs text-amber-600 dark:text-amber-400 mt-2">
+          We're done taking appointments for today — please pick another day, or call
+          <a href="tel:{{ clinic_phone }}" class="font-semibold underline">{{ clinic_phone }}</a> for an emergency.
+        </p>
+        <p x-show="!loadingSlots && pastTimes.length && !allSlotsPast" x-cloak class="text-xs text-slate-400 mt-2">
+          Times earlier than now have passed for today — pick a later time or another day.
+        </p>
         <p x-show="!loadingSlots && closedTimes.length" x-cloak class="text-xs text-slate-400 mt-2">
           We close at 4:30 PM on Saturdays, so later times aren't available.
         </p>
-        <p x-show="!loadingSlots && !closedTimes.length && selectedDate && takenTimes.length" x-cloak class="text-xs text-slate-400 mt-2">
+        <p x-show="!loadingSlots && !closedTimes.length && !pastTimes.length && selectedDate && takenTimes.length" x-cloak class="text-xs text-slate-400 mt-2">
           Greyed-out times are already booked for this date.
         </p>
         {{ form.preferred_time(id=form.preferred_time.id, **{"x-model": "selectedTime", "class": "sr-only"}) }}
@@ -162,6 +170,7 @@ function appointmentScheduler(initialDate, initialTime) {
 
     takenTimes: [],
     closedTimes: [],
+    pastTimes: [],
     loadingSlots: false,
     init() {
       this.buildMonth();
@@ -183,14 +192,24 @@ function appointmentScheduler(initialDate, initialTime) {
       return this.closedTimes.includes(value);
     },
 
+    isPast(value) {
+      return this.pastTimes.includes(value);
+    },
+
     isUnavailable(value) {
-      return this.isTaken(value) || this.isClosed(value);
+      return this.isTaken(value) || this.isClosed(value) || this.isPast(value);
+    },
+
+    // Every slot gone because the clinic day is over, rather than because it's fully booked.
+    get allSlotsPast() {
+      return this.timeSlots.length > 0 && this.pastTimes.length >= this.timeSlots.length;
     },
 
     async fetchAvailability() {
       if (!this.selectedDate) {
         this.takenTimes = [];
         this.closedTimes = [];
+        this.pastTimes = [];
         return;
       }
       const doctorSelect = document.getElementById("{{ form.doctor.id }}");
@@ -206,12 +225,14 @@ function appointmentScheduler(initialDate, initialTime) {
         const data = await res.json();
         this.takenTimes = data.taken || [];
         this.closedTimes = data.closed || [];
+        this.pastTimes = data.past || [];
         // Drop a selection that just became unavailable.
         if (this.selectedTime && this.isUnavailable(this.selectedTime)) this.selectedTime = "";
       } catch (err) {
         // Fall back to showing every slot; the server re-validates on submit anyway.
         this.takenTimes = [];
         this.closedTimes = [];
+        this.pastTimes = [];
       } finally {
         this.loadingSlots = false;
       }

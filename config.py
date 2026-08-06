@@ -20,6 +20,11 @@ class Config:
         os.environ.get("APPOINTMENT_CONFIRM_TOKEN_MAX_AGE_DAYS", 30)
     )
 
+    # The clinic's wall-clock timezone. "Today's" already-passed time slots are worked out
+    # against this, not the server's local clock, so booking stays correct when the app runs
+    # in a UTC container (as the Docker image does).
+    CLINIC_TIMEZONE = os.environ.get("CLINIC_TIMEZONE", "Asia/Karachi")
+
     # Mail
     MAIL_SERVER = os.environ.get("MAIL_SERVER", "localhost")
     MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))

@@ -6,6 +6,7 @@ from email_validator import validate_email, EmailNotValidError
 from app.extensions import db
 from app.models import Appointment, Service, Doctor
 from app.utils.email import send_appointment_confirmation, send_appointment_notification
+from app.utils.scheduling import is_slot_in_past
 
 ns = Namespace("appointments", description="Book an appointment via the API")
 
@@ -62,6 +63,9 @@ class AppointmentCreate(Resource):
 
         if preferred_date < date.today():
             ns.abort(400, "preferred_date cannot be in the past")
+
+        if is_slot_in_past(preferred_date, data["preferred_time"]):
+            ns.abort(400, "preferred_time has already passed today")
 
         appointment = Appointment(
             full_name=data["full_name"].strip(),
