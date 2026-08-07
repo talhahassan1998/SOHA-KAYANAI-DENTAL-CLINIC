@@ -1,40 +1,37 @@
 {% extends "base.html" %}
+{% from "partials/macros.html" import btn %}
 {% block title %}Appointment Confirmation — {{ clinic_name }}{% endblock %}
 
 {% block content %}
-<section class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-  <div class="w-20 h-20 rounded-full bg-secondary-50 dark:bg-secondary-900/40 text-secondary grid place-items-center mx-auto mb-6">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-10 h-10"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+{# Cancelled/expired/invalid states read as a warning rather than a success. #}
+{% set is_positive = state in ("confirmed", "already_confirmed") %}
+<section class="stagger max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+  <div class="success-pop w-20 h-20 rounded-full grid place-items-center mx-auto mb-6 shadow-soft
+              {{ 'bg-gradient-to-br from-primary to-secondary text-white' if is_positive
+                 else 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500' }}">
+    {% if is_positive %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="success-check w-10 h-10"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    {% else %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-10 h-10"><path d="M12 8v5M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
+    {% endif %}
   </div>
 
-  {% if state == "confirmed" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Appointment Confirmed</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s appointment has been marked as confirmed and a confirmation email has been sent to {{ appointment.email }}.</p>
-  {% elif state == "already_confirmed" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Already Confirmed</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s appointment was already confirmed. No new email was sent.</p>
-  {% elif state == "cancelled" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Appointment Cancelled</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s request has been cancelled, the time slot is free again, and a notification email has been sent to {{ appointment.email }}.</p>
-  {% elif state == "already_cancelled" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Already Cancelled</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s request was already cancelled. No new email was sent.</p>
-  {% elif state == "was_cancelled" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">This Request Was Cancelled</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s request was cancelled, so it can't be confirmed. Please contact the patient directly to rebook.</p>
-  {% elif state == "expired" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Link Expired</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">This confirmation link has expired. Please confirm the appointment directly in the database or contact the patient another way.</p>
-  {% elif state == "not_found" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Appointment Not Found</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">This appointment no longer exists.</p>
-  {% else %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Invalid Link</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">This confirmation link is not valid.</p>
-  {% endif %}
+  {% set states = {
+    "confirmed":         ("Appointment Confirmed", appointment.full_name ~ "'s appointment has been marked as confirmed and a confirmation email has been sent to " ~ appointment.email ~ ".") if appointment else None,
+    "already_confirmed": ("Already Confirmed", appointment.full_name ~ "'s appointment was already confirmed. No new email was sent.") if appointment else None,
+    "cancelled":         ("Appointment Cancelled", appointment.full_name ~ "'s request has been cancelled, the time slot is free again, and a notification email has been sent to " ~ appointment.email ~ ".") if appointment else None,
+    "already_cancelled": ("Already Cancelled", appointment.full_name ~ "'s request was already cancelled. No new email was sent.") if appointment else None,
+    "was_cancelled":     ("This Request Was Cancelled", appointment.full_name ~ "'s request was cancelled, so it can't be confirmed. Please contact the patient directly to rebook.") if appointment else None,
+    "expired":           ("Link Expired", "This confirmation link has expired. Please confirm the appointment directly in the database or contact the patient another way."),
+    "not_found":         ("Appointment Not Found", "This appointment no longer exists."),
+  } %}
+  {% set heading, body = states.get(state) or ("Invalid Link", "This confirmation link is not valid.") %}
 
-  <a href="{{ url_for('main.home') }}" class="inline-flex mt-10 items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold px-7 py-3.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
-    Back to Home
-  </a>
+  <h1 class="reveal font-heading text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-wide">{{ heading }}</h1>
+  <p class="reveal mt-4 text-slate-500 dark:text-slate-400">{{ body }}</p>
+
+  <div class="reveal">
+    {{ btn('Back to Home', url_for('main.home'), size='lg', extra='mt-10') }}
+  </div>
 </section>
 {% endblock %}

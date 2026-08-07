@@ -1,60 +1,393 @@
+{#
+  Design-system macros.
+
+  btn / section_heading / page_hero / filter_pill exist so the same visual
+  treatment can't drift across pages. Before these, the "primary" button lived
+  in four different paddings and the secondary button in three different hover
+  styles. Change a treatment here and every call site follows.
+#}
+
+{% set _BTN_BASE = 'group inline-flex items-center justify-center gap-2 font-semibold rounded-full transition-all duration-300 ease-out active:translate-y-0 active:scale-[0.98]' %}
+
+{% set _BTN_VARIANTS = {
+  'primary':   'bg-primary hover:bg-primary-600 text-white shadow-soft hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5',
+  'secondary': 'border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:-translate-y-0.5',
+  'ghost':     'text-primary hover:text-primary-600',
+} %}
+
+{% set _BTN_SIZES = {
+  'sm': 'px-5 py-2.5 text-sm',
+  'md': 'px-6 py-3',
+  'lg': 'px-7 py-3.5',
+  'none': '',
+} %}
+
+{#
+  Shared input treatment. Previously inputs had only focus:ring-2, so the ring
+  snapped in with no hover affordance and no transition. Also unifies the two
+  divergent dark backgrounds (contact used slate-900, the booking form slate-800)
+  onto slate-800, which matches the card surface.
+#}
+{% set INPUT_CLASSES = 'w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-2.5 text-sm hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-200' %}
+
+{% macro arrow_icon(size='w-4 h-4') -%}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="{{ size }} transition-transform duration-300 group-hover:translate-x-1"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+{%- endmacro %}
+
+{#
+  btn(label, href, ...) — renders an <a> when href is given, else a submit button.
+  `icon='arrow'` appends the sliding arrow used by the text CTAs.
+  `extra` takes any additional utility classes (w-full, mt-8, ...).
+  `attrs` takes raw attributes (target, rel, x-data, ...) — pass pre-escaped.
+#}
+{% macro btn(label, href=None, variant='primary', size='md', icon=None, extra='', attrs='') -%}
+{%- set classes = [_BTN_BASE, _BTN_VARIANTS.get(variant, _BTN_VARIANTS['primary']), _BTN_SIZES.get(size, _BTN_SIZES['md']), extra]|join(' ') -%}
+{%- if href -%}
+<a href="{{ href }}" class="{{ classes }}" {{ attrs|safe }}>{{ caller() if caller else label }}{% if icon == 'arrow' %}{{ arrow_icon() }}{% endif %}</a>
+{%- else -%}
+<button type="submit" class="{{ classes }}" {{ attrs|safe }}>{{ caller() if caller else label }}{% if icon == 'arrow' %}{{ arrow_icon() }}{% endif %}</button>
+{%- endif -%}
+{%- endmacro %}
+
+{# Eyebrow + h2 + optional subtitle. Repeated ~14 times before this existed. #}
+{#
+  Eyebrow now sits in a pill with a small rule beside it, and the h2 gets a short
+  gradient underline. Small additions, but they give each section a deliberate
+  "entry point" instead of three stacked lines of centred text.
+#}
+{% macro section_heading(eyebrow, title, subtitle=None, align='center') -%}
+<div class="reveal {{ 'text-center max-w-2xl mx-auto' if align == 'center' else 'max-w-2xl' }}">
+  {% if eyebrow %}
+  <span class="inline-flex items-center gap-2 rounded-full bg-secondary/15 dark:bg-secondary/20 px-3.5 py-1.5 text-[11px] font-bold tracking-widest uppercase text-secondary">
+    <span class="inline-block w-4 h-px bg-secondary/60"></span>{{ eyebrow }}
+  </span>
+  {% endif %}
+  <h2 class="mt-4 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">{{ title }}</h2>
+  <span class="block mt-4 h-1 w-14 rounded-full bg-gradient-to-r from-primary to-secondary {{ 'mx-auto' if align == 'center' }}"></span>
+  {% if subtitle %}<p class="mt-5 text-slate-500 dark:text-slate-400">{{ subtitle }}</p>{% endif %}
+</div>
+{%- endmacro %}
+
+{#
+  Subpage hero. Standardises the gradient (the home variant, which carries the
+  `via` stop the others omitted), the py-16 lg:py-20 rhythm, and the h1 scale.
+#}
+{% macro page_hero(eyebrow, title, subtitle=None, width='max-w-4xl') -%}
+<section class="relative overflow-hidden isolate bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 py-16 lg:py-20">
+  {# Symmetrical: arcs bottom-left, wash top-right. The heading is centred, so both
+     accents stay clear of the text column at every breakpoint. #}
+  {{ deco_arcs(corner='bl', size='w-[26rem] h-[26rem]') }}
+  {{ deco_blob(pos='-right-28 -top-28', size='w-[28rem] h-[28rem]') }}
+  <div class="{{ width }} mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
+    {% if eyebrow %}
+    <span class="inline-flex items-center gap-2 rounded-full bg-secondary/15 dark:bg-secondary/20 px-3.5 py-1.5 text-[11px] font-bold tracking-widest uppercase text-secondary">
+      <span class="inline-block w-4 h-px bg-secondary/60"></span>{{ eyebrow }}
+    </span>
+    {% endif %}
+    <h1 class="mt-4 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-wide">{{ title }}</h1>
+    <span class="block mx-auto mt-5 h-1 w-16 rounded-full bg-gradient-to-r from-primary to-secondary"></span>
+    {% if subtitle %}<p class="mt-5 text-slate-500 dark:text-slate-400">{{ subtitle }}</p>{% endif %}
+  </div>
+</section>
+{%- endmacro %}
+
+{#
+  Filter pill classes. The FAQ pills had no hover on the inactive state; the
+  gallery pills used hover:bg-primary-50 with no dark counterpart, which flashed
+  a near-white pill in dark mode. Both now share this.
+#}
+{% set PILL_BASE = 'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 active:scale-95' %}
+{% set PILL_ACTIVE = 'bg-primary text-white shadow-soft' %}
+{% set PILL_INACTIVE = 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary dark:hover:text-primary-300' %}
+
 {% macro service_icon(name) -%}
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5">
+  {#
+    Every icon is drawn on the same 24x24 grid at stroke-width 1.6 with round caps
+    and joins, so the set reads as one family. The shared molar silhouette below is
+    the base shape for the tooth-based icons — variants differ by what's layered on
+    top (screw, sparkle, canal, shield) rather than by redrawing the tooth, which is
+    what made the previous set inconsistent.
+  #}
+  {#
+    SIZING RULE: every glyph is drawn inside the box x/y 3 -> 21 (an 18x18 optical
+    square, centred on the 24x24 canvas) at stroke-width 1.7. The previous set
+    ranged from an 8.8-wide sliver to a 19.8-tall shape — roughly 2x difference in
+    optical area — which is why they looked mismatched at 20px. TOOTH below is the
+    one shared silhouette; every tooth-based icon reuses it verbatim and only
+    layers detail on top, so they can no longer drift apart.
+  #}
+  {%- set TOOTH = "M12 3.4c-4.3 0-7 3-7 7 0 2.7 1.4 3.8 1.7 6.3.3 2.2.7 4.9 2.4 4.9 1.6 0 1.7-3.6 2.9-6.1 1.2 2.5 1.3 6.1 2.9 6.1 1.7 0 2.1-2.7 2.4-4.9.3-2.5 1.7-3.6 1.7-6.3 0-4-2.7-7-7-7Z" -%}
+
   {% if name == 'implant' %}
-  <path d="M12 3v6M9 9h6l-1 8-2 4-2-4-1-8Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  {# Implant: crown on top, threaded screw fixture below — the literal anatomy. #}
+  <path d="M12 3.4c-3 0-5 2-5 4.6 0 1.6.7 2.4 1.1 3.6h7.8c.4-1.2 1.1-2 1.1-3.6 0-2.6-2-4.6-5-4.6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M9.3 14.1h5.4M9.7 17h4.6M10.6 20h2.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
   {% elif name == 'whitening' %}
-  <path d="M5 4h14l-1.5 12A4 4 0 0 1 13.5 20h-3A4 4 0 0 1 6.5 16L5 4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 9l1 4M15 9l-1 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  {# Whitening: the shared tooth + a sparkle for "brightened". #}
+  <path d="{{ TOOTH }}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M17.9 3.2l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7.7-1.9Z" fill="currentColor" stroke="currentColor" stroke-width=".9" stroke-linejoin="round"/>
   {% elif name == 'root-canal' %}
-  <path d="M12 3c-3 0-5 2-5 5 0 2 1 3 1.3 5.4.2 1.6.6 4.6 1.9 4.6 1.4 0 1.3-2.8 1.8-4.4.5 1.6.4 4.4 1.8 4.4 1.3 0 1.7-3 1.9-4.6C17 11 18 10 18 8c0-3-2-5-6-5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  {# Root canal: shared tooth with the pulp canals drawn down into the roots. #}
+  <path d="{{ TOOTH }}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M12 8.4v3.4M12 11.8c-.5 1.7-.9 3.4-1 5M12 11.8c.5 1.7.9 3.4 1 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
   {% elif name == 'braces' %}
-  <path d="M4 9c2 6 3 9 8 9s6-3 8-9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 9v2M11 10v2M13 10v2M17 9v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  {# Braces: a row of teeth with a straight archwire running across them and a
+     bracket on each — reads as orthodontics rather than a face. #}
+  <rect x="3.6" y="6.4" width="4.6" height="11.2" rx="1.6" stroke="currentColor" stroke-width="1.6"/>
+  <rect x="9.7" y="6.4" width="4.6" height="11.2" rx="1.6" stroke="currentColor" stroke-width="1.6"/>
+  <rect x="15.8" y="6.4" width="4.6" height="11.2" rx="1.6" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M2.6 12h18.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M5.9 10.4v3.2M12 10.4v3.2M18.1 10.4v3.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
   {% elif name == 'invisalign' %}
-  <path d="M4 9c2 5 4 8 8 8s6-3 8-8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="1.5 3"/>
+  {# Clear aligner: U-shaped tray, dashed inner wall = transparent. #}
+  <path d="M4.6 4.6v7.2c0 4.1 3.3 7.2 7.4 7.2s7.4-3.1 7.4-7.2V4.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M8.3 4.6v7.2c0 2.3 1.6 3.9 3.7 3.9s3.7-1.6 3.7-3.9V4.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="2.2 2.4"/>
   {% elif name == 'veneers' %}
-  <rect x="6" y="5" width="12" height="14" rx="4" stroke="currentColor" stroke-width="1.6"/><path d="M9 9h6M9 13h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  {# Veneers: the tooth with a shell facing offset in front of it — the gap between
+     the two outlines is what communicates "a thin layer bonded on top". #}
+  <path d="{{ TOOTH }}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M8.6 4.2c-2.6.9-4.3 3.3-4.3 6.2 0 2.7 1.4 3.8 1.7 6.3.2 1.5.4 3.3 1.1 4.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.4 2.2"/>
   {% elif name == 'smile' %}
-  <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 13.5s1.2 2 3.5 2 3.5-2 3.5-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M9 9.5h.01M15 9.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  {# Smile makeover: full arch of separated teeth, deepened so it fills the box. #}
+  <path d="M3.4 5.6h17.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M3.4 5.6c0 8 3.9 15 8.6 15s8.6-7 8.6-15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M7.9 5.6v6.4M12 5.6v7.6M16.1 5.6v6.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
   {% elif name == 'cosmetic' %}
-  <path d="M12 4a5 5 0 0 1 5 5c0 2-1 3-1.3 5-.2 1.4-.6 4-1.7 4-1.2 0-1.2-2.5-1.5-4-.2 1.5-.3 4-1.5 4-1.1 0-1.5-2.6-1.7-4C8.9 12 8 11 8 9a4 4 0 0 1 4-5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  {# Cosmetic: shared tooth + polish shine mark. #}
+  <path d="{{ TOOTH }}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M9.2 8.6c.9-1 2-1.6 3.3-1.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M18 3.2l.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6.6-1.7Z" fill="currentColor" stroke="currentColor" stroke-width=".9" stroke-linejoin="round"/>
   {% elif name == 'pediatric' %}
-  <circle cx="12" cy="10" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M9.5 10.5s.8 1.5 2.5 1.5 2.5-1.5 2.5-1.5M9.5 8.5h.01M14.5 8.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 16v4M9 20h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  {# Pediatric: shared tooth with a friendly face. #}
+  <path d="{{ TOOTH }}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M9.9 9.6h.01M14.1 9.6h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M10.2 12.5c.5.6 1.1.9 1.8.9s1.3-.3 1.8-.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
   {% elif name == 'extraction' %}
-  <path d="M9 4h6l1 7-1.5 8-2.5-4-2.5 4L8 11 9 4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  {# Extraction: shared tooth with an upward arrow — being lifted out. #}
+  <path d="{{ TOOTH }}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M18.6 20.6V14M18.6 14l-2.1 2.1M18.6 14l2.1 2.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
   {% elif name == 'emergency' %}
-  <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  {# Emergency: shield with a medical cross. #}
+  <path d="M12 3 4.9 5.8v5.9c0 4.5 2.9 7.9 7.1 9.6 4.2-1.7 7.1-5.1 7.1-9.6V5.8L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M12 8.4v5.6M9.2 11.2h5.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
   {% else %}
-  <path d="M12 3C8 3 5 6 5 10c0 3 1.5 4.5 1.8 7.5.2 2 .7 5.5 2.7 5.5 2 0 1.8-4 2.5-6 .7 2 .5 6 2.5 6 2 0 2.5-3.5 2.7-5.5C17.5 14.5 19 13 19 10c0-4-3-7-7-7Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  {# Default: the shared molar silhouette. #}
+  <path d="{{ TOOTH }}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  {% endif %}
+</svg>
+{%- endmacro %}
+
+{#
+  Background decoration. Purely ornamental: every element is aria-hidden and
+  pointer-events-none so it can never intercept a click or reach a screen reader.
+  The parent section must be `relative overflow-hidden` or these will spill.
+
+  `pos` is a Tailwind position string, e.g. '-left-24 top-10'.
+  `size`  is a width/height pair, e.g. 'w-[26rem] h-[26rem]'.
+#}
+{#
+  Concentric arc sweep. Anchored to a corner so the arcs radiate outward from it —
+  this is why it reads as intentional: the centre sits off-canvas, so you see a
+  deliberate fan of curves rather than a shape someone forgot to finish.
+  Use `corner` to pick which corner it hugs.
+#}
+{% macro deco_arcs(corner='br', size='w-[30rem] h-[30rem]', tone='text-primary/[0.28] dark:text-primary/[0.3]') -%}
+{%- set place = {
+  'br': '-right-40 -bottom-40',
+  'bl': '-left-40 -bottom-40',
+  'tr': '-right-40 -top-40',
+  'tl': '-left-40 -top-40',
+}.get(corner, '-right-40 -bottom-40') -%}
+<svg aria-hidden="true" focusable="false" viewBox="0 0 200 200" fill="none"
+     class="pointer-events-none select-none absolute -z-10 {{ place }} {{ size }} {{ tone }}">
+  <circle cx="100" cy="100" r="44" stroke="currentColor" stroke-width="1"/>
+  <circle cx="100" cy="100" r="66" stroke="currentColor" stroke-width="1"/>
+  <circle cx="100" cy="100" r="88" stroke="currentColor" stroke-width="1"/>
+</svg>
+{%- endmacro %}
+
+{# Backwards-compatible alias so existing deco_rings call sites keep working. #}
+{% macro deco_rings(pos='-right-20 -bottom-24', size='w-[26rem] h-[26rem]', tone='text-primary/[0.28] dark:text-primary/[0.3]') -%}
+<svg aria-hidden="true" focusable="false" viewBox="0 0 200 200" fill="none"
+     class="pointer-events-none select-none absolute -z-10 {{ pos }} {{ size }} {{ tone }}">
+  <circle cx="100" cy="100" r="44" stroke="currentColor" stroke-width="1"/>
+  <circle cx="100" cy="100" r="66" stroke="currentColor" stroke-width="1"/>
+  <circle cx="100" cy="100" r="88" stroke="currentColor" stroke-width="1"/>
+</svg>
+{%- endmacro %}
+
+{#
+  Four-point sparkle — the one literal motif worth keeping. It means "clean, bright,
+  polished", which is exactly what a dental clinic sells, and it's small enough to
+  read as an accent rather than an object. One per section, never more.
+#}
+{% macro deco_sparkle(pos='left-10 top-10', size='w-16 h-16', tone='text-secondary/40 dark:text-secondary/45') -%}
+<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"
+     class="pointer-events-none select-none absolute -z-10 {{ pos }} {{ size }} {{ tone }}">
+  <path d="M12 1.6c.7 4.9 2.5 7.7 7.4 8.4v.2c-4.9.7-6.7 3.5-7.4 8.4h-.2c-.7-4.9-2.5-7.7-7.4-8.4v-.2c4.9-.7 6.7-3.5 7.4-8.4h.2Z"/>
+</svg>
+{%- endmacro %}
+
+{#
+  Kept so any stray call site still renders — now draws the arc sweep instead of a
+  tooth. A giant tooth outline as wallpaper read as a mistake; teeth belong in the
+  icons where they carry meaning at a legible size.
+#}
+{% macro deco_tooth(pos='-left-24 -bottom-24', size='w-[30rem] h-[30rem]', tone='text-primary/[0.16] dark:text-primary/[0.18]') -%}
+{{ deco_rings(pos=pos, size=size, tone=tone) }}
+{%- endmacro %}
+
+{# Soft colour blob — adds depth behind content without reading as an object. #}
+{% macro deco_blob(pos='-right-32 -top-32', size='w-[34rem] h-[34rem]', tone='bg-secondary/20 dark:bg-secondary/[0.14]') -%}
+<div aria-hidden="true"
+     class="pointer-events-none select-none absolute -z-10 rounded-full blur-3xl {{ pos }} {{ size }} {{ tone }}"></div>
+{%- endmacro %}
+
+{# Faint dot grid, for sections that need texture rather than a shape. #}
+{% macro deco_dots(pos='right-8 bottom-8', size='w-56 h-56') -%}
+<div aria-hidden="true" class="deco-dots pointer-events-none select-none absolute -z-10 {{ pos }} {{ size }}"></div>
+{%- endmacro %}
+
+{#
+  A numbered process strip — "how it works" in three or four steps. This is the
+  single most useful thing a clinic site can add: it answers "what actually
+  happens if I book?" and it breaks up a page of otherwise-identical card grids.
+  Pass a list of (icon_name, title, description) tuples.
+#}
+{% macro process_steps(steps) -%}
+<div class="stagger relative mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-{{ steps|length }}">
+  {# Connector line behind the row, desktop only. Sits under the numbers. #}
+  <div aria-hidden="true"
+       class="pointer-events-none absolute inset-x-0 top-7 hidden lg:block border-t-2 border-dashed border-primary/25 dark:border-primary/20"></div>
+
+  {% for icon, title, desc in steps %}
+  <div class="reveal group relative text-center">
+    <div class="relative z-10 mx-auto w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 border-2 border-primary/25 dark:border-primary/30 text-primary grid place-items-center shadow-card
+                group-hover:bg-primary group-hover:text-white group-hover:border-primary group-hover:scale-110 group-hover:shadow-soft transition-all duration-300">
+      {{ feature_icon(icon) }}
+      <span class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-secondary text-white text-[11px] font-bold grid place-items-center shadow-sm">{{ loop.index }}</span>
+    </div>
+    <h3 class="mt-5 font-heading font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{{ title }}</h3>
+    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">{{ desc }}</p>
+  </div>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{#
+  Highlight strip — a full-width band of small trust signals. Cheap to render,
+  and it gives the eye a rest between two heavy card grids.
+  Pass a list of (icon_name, label) tuples.
+#}
+{% macro trust_strip(items) -%}
+<div class="stagger grid grid-cols-2 md:grid-cols-4 gap-4">
+  {% for icon, label in items %}
+  <div class="reveal group flex items-center gap-3 rounded-2xl bg-white/70 dark:bg-slate-800/60 backdrop-blur border border-slate-100 dark:border-slate-700 px-4 py-3.5
+              hover:border-primary/40 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-card transition-all duration-300">
+    <span class="shrink-0 w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-900/40 text-primary grid place-items-center
+                 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+      {{ feature_icon(icon) }}
+    </span>
+    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-snug">{{ label }}</span>
+  </div>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{#
+  Feature icons for the "Why choose us" grid. Same 24x24 grid / 1.6 stroke as
+  service_icon so the two sets read as one family.
+#}
+{% macro feature_icon(name) -%}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5">
+  {% if name == 'shield' %}
+  {# Experienced dentists: shield with a verification tick. #}
+  <path d="M12 2.6 4.8 5.4v6.1c0 4.6 3 8.1 7.2 9.9 4.2-1.8 7.2-5.3 7.2-9.9V5.4L12 2.6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="m9 11.6 2.2 2.2L15.2 9.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  {% elif name == 'scan' %}
+  {# Digital X-rays: scanner frame with a tooth inside. #}
+  <path d="M3.4 8.2V5.6a2 2 0 0 1 2-2h2.6M16 3.6h2.6a2 2 0 0 1 2 2v2.6M20.6 15.8v2.6a2 2 0 0 1-2 2H16M8 20.4H5.4a2 2 0 0 1-2-2v-2.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M12 7.6c-2.2 0-3.6 1.6-3.6 3.6 0 1.4.7 2 .9 3.3.2 1.2.3 2.9 1.3 2.9s.9-2 1.4-3.2c.5 1.2.5 3.2 1.4 3.2s1.1-1.7 1.3-2.9c.2-1.3.9-1.9.9-3.3 0-2-1.4-3.6-3.6-3.6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  {% elif name == 'heart' %}
+  {# Pain-free: heart with a pulse line. #}
+  <path d="M12 20.4c-1-.7-7.4-4.6-7.4-9.6a4.2 4.2 0 0 1 7.4-2.7 4.2 4.2 0 0 1 7.4 2.7c0 5-6.4 8.9-7.4 9.6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M6.6 12.6h2.6l1.2-2.2 1.6 4 1.2-1.8h2.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  {% elif name == 'sparkle' %}
+  {# Sterilized equipment: autoclave / sealed pouch with a sparkle. #}
+  <rect x="4" y="6.6" width="12.4" height="11.6" rx="2" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M4 10.2h12.4M7.6 6.6V4.4M12.8 6.6V4.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M19.4 3.4l.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6.6-1.7Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+  {% elif name == 'wallet' %}
+  {# Affordable pricing: wallet with a coin. #}
+  <path d="M3.6 8.4a2 2 0 0 1 2-2h11.2a2 2 0 0 1 2 2v9.4a2 2 0 0 1-2 2H5.6a2 2 0 0 1-2-2V8.4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M3.6 8.4 15.4 4.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M15.4 11.6h5v4h-5a2 2 0 0 1 0-4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  {% elif name == 'siren' %}
+  {# Emergency: clock with a medical cross. #}
+  <circle cx="12" cy="12.6" r="7.6" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M12 9.4v6.4M8.8 12.6h6.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M4.8 4.2 7.4 2.2M19.2 4.2 16.6 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  {% elif name == 'calendar' %}
+  {# Book: calendar with a tick. #}
+  <rect x="3.6" y="5" width="16.8" height="15.4" rx="2.4" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M3.6 9.6h16.8M8.4 3.4v3.2M15.6 3.4v3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="m9 14.8 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  {% elif name == 'chat' %}
+  {# Consult: speech bubble with lines. #}
+  <path d="M20.4 12.2c0 4-3.8 7.2-8.4 7.2-1 0-2-.2-2.9-.5L4 20.4l1.6-4.2c-1-1.2-1.6-2.6-1.6-4.2 0-4 3.8-7.2 8.4-7.2s8 3.2 8 7.4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M8.8 11.4h6.4M8.8 14.4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  {% elif name == 'plan' %}
+  {# Plan: clipboard with checklist. #}
+  <path d="M8.6 4.6H6.4a2 2 0 0 0-2 2v11.8a2 2 0 0 0 2 2h11.2a2 2 0 0 0 2-2V6.6a2 2 0 0 0-2-2h-2.2" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  <rect x="8.6" y="2.8" width="6.8" height="3.6" rx="1.2" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M8.6 11.6h6.8M8.6 15.2h4.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  {% elif name == 'smile-face' %}
+  {# Result: smiling face. #}
+  <circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M8.4 13.6c.9 1.5 2.2 2.3 3.6 2.3s2.7-.8 3.6-2.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M9.4 9.4h.01M14.6 9.4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  {% elif name == 'clock' %}
+  <circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M12 7.4V12l3 1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  {% elif name == 'award' %}
+  <circle cx="12" cy="9.4" r="5.6" stroke="currentColor" stroke-width="1.6"/>
+  <path d="m8.6 14.2-1.2 6.4 4.6-2.4 4.6 2.4-1.2-6.4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+  {% else %}
+  <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
   {% endif %}
 </svg>
 {%- endmacro %}
 
 {% macro service_card(service) -%}
-<div class="reveal group flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card hover-lift border border-slate-100 dark:border-slate-700">
-  <div class="w-11 h-11 rounded-xl bg-primary-50 dark:bg-primary-900/40 text-primary grid place-items-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+{# `card-sheen` adds the gradient wash + accent bar on hover; see style.css. #}
+<div class="reveal group card-sheen hover-zoom relative isolate overflow-hidden flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card hover-lift border border-slate-100 dark:border-slate-700 hover:border-primary/40 transition-colors duration-300">
+  <div class="w-11 h-11 rounded-xl bg-primary-50 dark:bg-primary-900/40 text-primary grid place-items-center mb-4 group-hover:bg-primary group-hover:text-white group-hover:scale-110 group-hover:-rotate-6 group-hover:shadow-soft transition-all duration-300">
     {{ service_icon(service.icon_name) }}
   </div>
-  <h3 class="font-heading font-semibold text-slate-900 dark:text-white mb-2">{{ service.name }}</h3>
+  <h3 class="font-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors duration-300">{{ service.name }}</h3>
   <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ service.short_description }}</p>
-  <a href="{{ url_for('services.detail', slug=service.slug) }}" class="inline-flex items-center gap-1 mt-auto pt-4 text-sm font-semibold text-primary hover:text-primary-600">
+  <a href="{{ url_for('services.detail', slug=service.slug) }}" class="inline-flex items-center gap-1 mt-auto pt-4 text-sm font-semibold text-primary group-hover:gap-2 group-hover:text-primary-600 transition-all duration-300">
     Learn More
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4 transition-transform group-hover:translate-x-1"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </a>
 </div>
 {%- endmacro %}
 
 {% macro doctor_card(doctor) -%}
-<div class="reveal group flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-card hover-lift border border-slate-100 dark:border-slate-700">
-  <div class="aspect-[4/5] overflow-hidden bg-slate-100 dark:bg-slate-700">
+<div class="reveal group card-sheen relative isolate flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-card hover-lift border border-slate-100 dark:border-slate-700 hover:border-primary/40 transition-colors duration-300">
+  <div class="relative aspect-[4/5] overflow-hidden bg-slate-100 dark:bg-slate-700">
     <img src="{{ doctor.photo_url }}" alt="{{ doctor.name }}" loading="lazy" class="lazy-fade w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+    <div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
   </div>
   <div class="p-5 text-center flex flex-col flex-1">
-    <h3 class="font-heading font-semibold text-slate-900 dark:text-white">{{ doctor.name }}</h3>
+    <h3 class="font-heading font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{{ doctor.name }}</h3>
     <p class="text-xs text-primary font-semibold mt-1">{{ doctor.credentials }}</p>
     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-3.5 h-3.5 shrink-0 inline-block align-text-top mr-1"><path d="M12 21s-7-6.5-7-11.5A7 7 0 0 1 19 9.5C19 14.5 12 21 12 21Z" stroke="currentColor" stroke-width="1.6"/></svg>{{ doctor.specialty }} &middot; {{ doctor.years_experience }}+ years
     </p>
     <div class="mt-auto pt-4">
-      <a href="{{ url_for('appointments.book') }}?doctor={{ doctor.id }}" class="inline-block w-full text-center bg-primary-50 dark:bg-primary-900/40 text-primary font-semibold text-sm py-2.5 rounded-full hover:bg-primary hover:text-white transition-colors">
+      <a href="{{ url_for('appointments.book') }}?doctor={{ doctor.id }}" class="inline-block w-full text-center bg-primary-50 dark:bg-primary-900/40 text-primary font-semibold text-sm py-2.5 rounded-full hover:bg-primary hover:text-white hover:shadow-soft active:scale-[0.98] transition-all duration-300">
         Book Consultation
       </a>
     </div>
@@ -73,37 +406,62 @@
 {%- endmacro %}
 
 {% macro testimonial_card(t) -%}
-<div class="reveal bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card border border-slate-100 dark:border-slate-700 h-full flex flex-col">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-secondary/30 mb-3"><path d="M7 8c-2.2 0-4 1.8-4 4v4h5v-4H6c0-1.1.9-2 2-2V8Zm10 0c-2.2 0-4 1.8-4 4v4h5v-4h-2c0-1.1.9-2 2-2V8Z"/></svg>
+<div class="reveal group card-sheen card-sheen--secondary relative isolate overflow-hidden bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card hover-lift border border-slate-100 dark:border-slate-700 hover:border-secondary/40 transition-colors duration-300 h-full flex flex-col">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-secondary/30 group-hover:text-secondary/60 group-hover:scale-110 mb-3 transition-all duration-300 origin-left"><path d="M7 8c-2.2 0-4 1.8-4 4v4h5v-4H6c0-1.1.9-2 2-2V8Zm10 0c-2.2 0-4 1.8-4 4v4h5v-4h-2c0-1.1.9-2 2-2V8Z"/></svg>
   {{ star_rating(t.rating) }}
   <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed my-4 flex-1">&ldquo;{{ t.quote }}&rdquo;</p>
   <div class="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
-    <img src="{{ t.patient_photo_url }}" alt="{{ t.patient_name }}" loading="lazy" class="lazy-fade w-10 h-10 rounded-full object-cover">
+    <img src="{{ t.patient_photo_url }}" alt="{{ t.patient_name }}" loading="lazy" class="lazy-fade w-10 h-10 rounded-full object-cover group-hover:scale-105 transition-transform duration-300">
     <div>
       <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ t.patient_name }}</p>
-      <p class="text-xs text-slate-400">{{ t.treatment }}</p>
+      <p class="text-xs text-slate-400 dark:text-slate-500">{{ t.treatment }}</p>
     </div>
   </div>
 </div>
 {%- endmacro %}
 
+{#
+  Accordion. The panel animates via a CSS grid-rows 0fr -> 1fr transition rather
+  than Alpine's x-collapse: that directive ships in the separate @alpinejs/collapse
+  plugin, which this project doesn't load, so it was silently a no-op and the panel
+  snapped open. The grid technique animates to the content's natural height with no
+  JS measurement and no extra dependency.
+
+  aria-expanded / aria-controls make the state audible to screen readers, which the
+  previous markup didn't expose at all.
+#}
 {% macro faq_item(faq, index) -%}
-<div x-data="{ open: {{ 'true' if index == 0 else 'false' }} }" class="reveal border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-white dark:bg-slate-800">
-  <button @click="open = !open" class="w-full flex items-center justify-between gap-4 px-5 py-4 text-left">
-    <span class="font-heading font-semibold text-slate-800 dark:text-white text-sm md:text-base">{{ faq.question }}</span>
-    <svg :class="open ? 'rotate-45' : ''" class="w-5 h-5 shrink-0 text-primary transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+{%- set panel_id = 'faq-panel-' ~ index ~ '-' ~ (faq.question | length) -%}
+<div x-data="{ open: {{ 'true' if index == 0 else 'false' }} }"
+     :class="open ? 'border-primary/40 shadow-soft' : ''"
+     class="reveal group border border-slate-100 dark:border-slate-700 rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-card hover:border-primary/40 transition-all duration-300">
+  <button @click="open = !open"
+          :aria-expanded="open ? 'true' : 'false'"
+          aria-controls="{{ panel_id }}"
+          class="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-slate-50/70 dark:hover:bg-slate-700/30 transition-colors">
+    <span class="font-heading font-semibold text-slate-800 dark:text-white text-sm md:text-base group-hover:text-primary transition-colors">{{ faq.question }}</span>
+    <span class="shrink-0 w-7 h-7 rounded-full grid place-items-center text-primary transition-all duration-300"
+          :class="open ? 'bg-primary text-white rotate-[135deg]' : 'bg-primary-50 dark:bg-primary-900/40'">
+      <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </span>
   </button>
-  <div x-show="open" x-collapse x-cloak class="px-5 pb-5 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-    {{ faq.answer }}
+  {# Bind grid-template-rows inline rather than via a class: Alpine's :class and a
+     static class both write the same attribute, and on some paths Alpine's value
+     won — leaving `is-open` present but the row still resolved at 0px. Setting the
+     style property directly removes that ambiguity entirely. #}
+  <div id="{{ panel_id }}" class="faq-panel" :style="open ? 'grid-template-rows:1fr' : 'grid-template-rows:0fr'" :class="open ? 'is-open' : ''">
+    <div class="faq-panel__inner">
+      <div class="px-5 pb-5 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ faq.answer }}</div>
+    </div>
   </div>
 </div>
 {%- endmacro %}
 
 {% macro stat_counter(stat) -%}
-<div class="text-center">
-  <p class="font-heading text-3xl md:text-4xl font-extrabold text-primary flex items-center justify-center gap-0.5">
+<div class="group text-center cursor-default">
+  <p class="font-heading text-3xl md:text-4xl font-extrabold text-primary flex items-center justify-center gap-0.5 group-hover:scale-110 transition-transform duration-300">
     <span data-counter="{{ stat.value }}">0</span><span>{{ stat.suffix }}</span>
   </p>
-  <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">{{ stat.label }}</p>
+  <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">{{ stat.label }}</p>
 </div>
 {%- endmacro %}

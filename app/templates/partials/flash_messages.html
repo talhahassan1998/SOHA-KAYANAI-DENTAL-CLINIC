@@ -3,12 +3,12 @@
     <div class="fixed top-20 right-4 z-[100] w-[min(360px,calc(100vw-2rem))] space-y-2" x-data="{ show: true }">
       {% for category, message in messages %}
         <div x-show="show" x-init="setTimeout(() => show = false, 6000)" x-transition
-             class="flex items-start gap-3 rounded-xl px-4 py-3 shadow-card border text-sm
+             class="flex items-start gap-3 rounded-2xl px-4 py-3 shadow-card hover:shadow-soft border text-sm transition-shadow duration-300
              {% if category == 'success' %} bg-secondary-50 border-secondary-200 text-secondary-800 dark:bg-secondary-900/40 dark:border-secondary-700 dark:text-secondary-100
              {% elif category == 'error' %} bg-red-50 border-red-200 text-red-800 dark:bg-red-900/40 dark:border-red-700 dark:text-red-100
              {% else %} bg-primary-50 border-primary-200 text-primary-800 dark:bg-primary-900/40 dark:border-primary-700 dark:text-primary-100 {% endif %}">
           <span class="flex-1">{{ message }}</span>
-          <button @click="show = false" class="opacity-60 hover:opacity-100">&times;</button>
+          <button @click="show = false" aria-label="Dismiss" class="shrink-0 leading-none opacity-60 hover:opacity-100 hover:rotate-90 active:scale-90 transition-all duration-300">&times;</button>
         </div>
       {% endfor %}
     </div>

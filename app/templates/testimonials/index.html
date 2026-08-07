@@ -1,26 +1,18 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import testimonial_card %}
+{% from "partials/macros.html" import testimonial_card, btn, page_hero %}
 {% block title %}Patient Testimonials — {{ clinic_name }}{% endblock %}
 
 {% block content %}
-<section class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:to-slate-800 py-16 lg:py-20">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
-    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Patient Stories</span>
-    <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-wide">15,000 smiles and counting</h1>
-    <p class="mt-5 text-slate-500 dark:text-slate-400">Real words from real patients treated at {{ clinic_name }}.</p>
-  </div>
-</section>
+{{ page_hero('Patient Stories', '15,000 smiles and counting', 'Real words from real patients treated at ' ~ clinic_name ~ '.') }}
 
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
   <div class="stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for t in testimonials %}{{ testimonial_card(t) }}{% endfor %}
   </div>
 
-  <div class="text-center mt-14 bg-primary-50 dark:bg-slate-800/60 rounded-3xl p-10">
+  <div class="reveal text-center mt-14 bg-primary-50 dark:bg-slate-800/60 rounded-3xl p-10">
     <h2 class="font-heading text-2xl font-bold text-slate-900 dark:text-white">Ready to start your own story?</h2>
-    <a href="{{ url_for('appointments.book') }}" class="inline-flex mt-6 items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold px-7 py-3.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
-      Book Appointment
-    </a>
+    {{ btn('Book Appointment', url_for('appointments.book'), size='lg', extra='mt-6') }}
   </div>
 </section>
 {% endblock %}

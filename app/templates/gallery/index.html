@@ -1,30 +1,25 @@
 {% extends "base.html" %}
+{% from "partials/macros.html" import page_hero, PILL_BASE, PILL_ACTIVE, PILL_INACTIVE %}
 {% block title %}Gallery — {{ clinic_name }}{% endblock %}
 
 {% block content %}
-<section class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:to-slate-800 py-16 lg:py-20">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
-    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Gallery</span>
-    <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-wide">Smile transformations</h1>
-    <p class="mt-5 text-slate-500 dark:text-slate-400">A selection of recent work from our cosmetic and restorative team.</p>
-  </div>
-</section>
+{{ page_hero('Gallery', 'Smile transformations', 'A selection of recent work from our cosmetic and restorative team.') }}
 
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-  <div class="flex flex-wrap justify-center gap-2 mb-10">
-    <a href="{{ url_for('gallery.index') }}" class="px-4 py-2 rounded-full text-sm font-semibold transition {{ 'bg-primary text-white' if not active_category else 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary-50' }}">All</a>
+  <div class="reveal flex flex-wrap justify-center gap-2 mb-10">
+    <a href="{{ url_for('gallery.index') }}" class="{{ PILL_BASE }} {{ PILL_ACTIVE if not active_category else PILL_INACTIVE }}">All</a>
     {% for cat in categories %}
-    <a href="{{ url_for('gallery.index', category=cat) }}" class="px-4 py-2 rounded-full text-sm font-semibold capitalize transition {{ 'bg-primary text-white' if active_category == cat else 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary-50' }}">{{ cat.replace('-', ' ') }}</a>
+    <a href="{{ url_for('gallery.index', category=cat) }}" class="{{ PILL_BASE }} capitalize {{ PILL_ACTIVE if active_category == cat else PILL_INACTIVE }}">{{ cat.replace('-', ' ') }}</a>
     {% endfor %}
   </div>
 
   <div x-data="{ open: false, activeImg: '', activeCaption: '' }" class="stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for img in images %}
     <button type="button" @click="open = true; activeImg = '{{ img.after_image_url or img.before_image_url }}'; activeCaption = '{{ img.caption }}'"
-            class="reveal group relative rounded-2xl overflow-hidden shadow-card hover-lift text-left">
-      <img src="{{ img.after_image_url or img.before_image_url }}" alt="{{ img.title }}" loading="lazy" class="lazy-fade w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500">
-      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent"></div>
-      <div class="absolute bottom-0 left-0 right-0 p-4">
+            class="reveal reveal-scale group relative rounded-2xl overflow-hidden shadow-card hover-lift text-left">
+      <img src="{{ img.after_image_url or img.before_image_url }}" alt="{{ img.title }}" loading="lazy" class="lazy-fade w-full h-56 object-cover group-hover:scale-110 transition-transform duration-700">
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent group-hover:from-black/80 transition-colors duration-500"></div>
+      <div class="absolute bottom-0 left-0 right-0 p-4 group-hover:-translate-y-1 transition-transform duration-300">
         <p class="text-white font-heading font-semibold text-sm">{{ img.title }}</p>
         <p class="text-white/70 text-xs">{{ img.caption }}</p>
       </div>
@@ -35,7 +30,7 @@
 
     <div x-show="open" x-cloak x-transition.opacity @keydown.escape.window="open = false"
          class="fixed inset-0 z-[110] bg-black/85 grid place-items-center p-4" @click.self="open = false">
-      <button @click="open = false" class="absolute top-6 right-6 text-white/80 hover:text-white" aria-label="Close">
+      <button @click="open = false" class="absolute top-6 right-6 text-white/80 hover:text-white hover:rotate-90 active:scale-90 transition-all duration-300" aria-label="Close">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
       <div class="max-w-3xl w-full">

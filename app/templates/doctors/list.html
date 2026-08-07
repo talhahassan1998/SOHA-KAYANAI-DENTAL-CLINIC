@@ -1,15 +1,9 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import doctor_card %}
+{% from "partials/macros.html" import doctor_card, page_hero %}
 {% block title %}Our Doctors — {{ clinic_name }}{% endblock %}
 
 {% block content %}
-<section class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:to-slate-800 py-16 lg:py-20">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
-    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Meet Our Doctors</span>
-    <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-wide">Specialists who treat what they teach</h1>
-    <p class="mt-5 text-slate-500 dark:text-slate-400">Each of our clinicians focuses on a single discipline — so you are always seen by an expert, not a generalist.</p>
-  </div>
-</section>
+{{ page_hero('Meet Our Doctors', 'Specialists who treat what they teach', 'Each of our clinicians focuses on a single discipline — so you are always seen by an expert, not a generalist.') }}
 
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
   <div class="stagger grid sm:grid-cols-2 lg:grid-cols-4 gap-6">

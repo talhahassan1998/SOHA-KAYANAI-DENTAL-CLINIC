@@ -1,31 +1,32 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import doctor_card %}
+{% from "partials/macros.html" import doctor_card, btn, deco_arcs, deco_sparkle, deco_blob %}
 {% block title %}{{ doctor.name }} — {{ clinic_name }}{% endblock %}
 {% block meta_description %}{{ doctor.name }}, {{ doctor.specialty }} at {{ clinic_name }}.{% endblock %}
 
 {% block content %}
-<section class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:to-slate-800 py-16 lg:py-20">
+<section class="relative overflow-hidden isolate bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 py-16 lg:py-20">
+  {# Mirrored vs. services/detail — photo sits left here, so accents flip. #}
+  {{ deco_arcs(corner='tr', size='w-[26rem] h-[26rem]', tone='text-secondary/[0.3] dark:text-secondary/[0.32]') }}
+  {{ deco_blob(pos='-left-28 -bottom-28', size='w-[28rem] h-[28rem]', tone='bg-primary/20 dark:bg-primary/[0.14]') }}
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
-    <div class="reveal rounded-[2rem] overflow-hidden shadow-soft aspect-[4/5] max-w-sm mx-auto lg:mx-0">
-      <img src="{{ doctor.photo_url }}" alt="{{ doctor.name }}" loading="lazy" class="w-full h-full object-cover">
+    <div class="reveal reveal-left group rounded-[2rem] overflow-hidden shadow-soft hover:shadow-lg aspect-[4/5] max-w-sm mx-auto lg:mx-0 transition-shadow duration-500">
+      <img src="{{ doctor.photo_url }}" alt="{{ doctor.name }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
     </div>
-    <div class="reveal">
+    <div class="reveal reveal-right">
       <nav class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-        <a href="{{ url_for('doctors.list_doctors') }}" class="hover:text-primary">Doctors</a> / <span class="text-slate-700 dark:text-slate-200">{{ doctor.name }}</span>
+        <a href="{{ url_for('doctors.list_doctors') }}" class="hover:text-primary transition-colors">Doctors</a> / <span class="text-slate-700 dark:text-slate-200">{{ doctor.name }}</span>
       </nav>
       <h1 class="font-heading text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-wide">{{ doctor.name }}</h1>
       <p class="mt-2 text-primary font-semibold">{{ doctor.credentials }}</p>
       <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ doctor.specialty }} &middot; {{ doctor.years_experience }}+ years experience</p>
       <p class="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed">{{ doctor.bio }}</p>
-      <a href="{{ url_for('appointments.book') }}?doctor={{ doctor.id }}" class="inline-flex mt-8 items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold px-7 py-3.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
-        Book Consultation with {{ doctor.name.split(' ')[-1] }}
-      </a>
+      {{ btn('Book Consultation with ' ~ doctor.name.split(' ')[-1], url_for('appointments.book') ~ '?doctor=' ~ doctor.id, size='lg', extra='mt-8') }}
     </div>
   </div>
 </section>
 
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-  <h2 class="font-heading text-2xl font-bold text-slate-900 dark:text-white mb-8">Meet the rest of the team</h2>
+  <h2 class="reveal font-heading text-2xl font-bold text-slate-900 dark:text-white mb-8">Meet the rest of the team</h2>
   <div class="stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for other in others %}{{ doctor_card(other) }}{% endfor %}
   </div>

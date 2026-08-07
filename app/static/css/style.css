@@ -1,16 +1,129 @@
 [x-cloak] { display: none !important; }
 
-html { scroll-behavior: smooth; }
-
-::selection { background-color: #0B74D1; color: #fff; }
-
-.section-eyebrow {
-  letter-spacing: 0.08em;
+/* Brand tokens mirrored from the Tailwind config in base.html. Kept here so the
+   raw-CSS rules below (selection, focus ring, nav underline) can't drift from
+   the utility classes. Update both together. */
+:root {
+  --brand-primary: #0B74D1;
+  --brand-secondary: #14B8A6;
 }
 
-/* Card hover lift */
-.hover-lift { transition: transform .35s ease, box-shadow .35s ease; }
-.hover-lift:hover { transform: translateY(-6px); }
+html { scroll-behavior: smooth; }
+
+::selection { background-color: var(--brand-primary); color: #fff; }
+
+/* Card hover lift. The box-shadow transition was already declared here but no
+   hover shadow was ever set — the bloom below is effectively free. */
+/* Hover lift + zoom.
+   The doubled selectors (.hover-lift.hover-lift) are deliberate. `.reveal.in-view`
+   further down this file sets `transform: none` at the same specificity (0,2,0) and
+   appears LATER, so it was winning the tie and silently cancelling the hover
+   transform on every revealed card. Doubling the class raises these to (0,3,0) so
+   the hover state wins regardless of source order.
+
+   Lift and zoom must also share ONE declaration: `transform` is a single property,
+   so a separate `hover:scale-105` utility would replace translateY() rather than
+   compose with it, and the card would stop lifting. */
+.hover-lift { transition: transform .35s cubic-bezier(.34, 1.3, .64, 1), box-shadow .35s ease; }
+.hover-lift.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -12px rgba(15, 23, 42, .18);
+}
+.dark .hover-lift:hover { box-shadow: 0 20px 40px -12px rgba(0, 0, 0, .45); }
+
+/* Opt-in zoom, used alongside .hover-lift. */
+.hover-zoom.hover-zoom:hover { transform: translateY(-6px) scale(1.03); }
+
+/* Card media (e.g. a photo) can zoom a little harder than its container. */
+.hover-zoom .zoom-media { transition: transform .5s cubic-bezier(.34, 1.3, .64, 1); }
+.hover-zoom:hover .zoom-media { transform: scale(1.08); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-zoom.hover-zoom:hover { transform: none; }
+  .hover-zoom .zoom-media,
+  .hover-zoom:hover .zoom-media { transition: none; transform: none; }
+}
+
+/* Card hover treatment: a brand accent bar wipes in along the top edge and a soft
+   gradient wash fades up from the bottom. Both are pseudo-elements so no extra
+   markup is needed, and both sit behind the content via z-index. The card must be
+   position:relative + overflow-hidden (see .card-sheen usage in macros.html). */
+.card-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .45s cubic-bezier(.4, 0, .2, 1);
+  z-index: 1;
+}
+.card-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, transparent 42%, rgba(11, 116, 209, .12) 100%);
+  opacity: 0;
+  transition: opacity .45s ease;
+  z-index: -1;
+}
+.card-sheen:hover::before { transform: scaleX(1); }
+.card-sheen:hover::after  { opacity: 1; }
+.dark .card-sheen::after {
+  background: linear-gradient(160deg, transparent 45%, rgba(20, 184, 166, .12) 100%);
+}
+
+/* Testimonial cards lead with the secondary colour, so flip the gradient direction
+   to keep the accent bar reading as teal-first rather than blue-first. */
+.card-sheen--secondary::before {
+  background: linear-gradient(90deg, var(--brand-secondary), var(--brand-primary));
+}
+.card-sheen--secondary::after {
+  background: linear-gradient(160deg, transparent 45%, rgba(20, 184, 166, .08) 100%);
+}
+
+/* Decorative dot grid used by the deco_dots macro. Masked so it fades out at the
+   edges rather than ending on a hard rectangle. */
+.deco-dots {
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 18px 18px;
+  color: rgba(11, 116, 209, .32);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 72%);
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 72%);
+}
+.dark .deco-dots { color: rgba(20, 184, 166, .3); }
+
+/* FAQ accordion panel.
+   Animating `height` requires knowing the content height in advance; animating a
+   grid track from 0fr to 1fr does not — the browser resolves the natural height
+   for us, so the panel expands to fit any answer length with no JS measurement.
+   `min-height: 0` on the inner element is required or the grid child refuses to
+   shrink below its content size and the panel never closes. */
+.faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .45s cubic-bezier(.4, 0, .2, 1);
+}
+.faq-panel.is-open { grid-template-rows: 1fr; }
+
+.faq-panel__inner {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .3s ease, transform .35s ease;
+}
+.faq-panel.is-open .faq-panel__inner {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: .1s; /* let the panel start opening before the text fades in */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-panel,
+  .faq-panel__inner { transition: none; }
+}
 
 /* Glassmorphism utility */
 .glass {
@@ -33,11 +146,22 @@ img.lazy-fade.loaded {
   opacity: 1;
 }
 
-/* Simple fade-in-on-scroll utility, toggled via IntersectionObserver in main.js */
-.reveal {
+/* Simple fade-in-on-scroll utility, toggled via IntersectionObserver in main.js.
+   The travel distance and duration are deliberately generous — at ~.7s over 24px
+   the motion was over before the eye registered it, which read as "no animation".
+   The custom easing decelerates late so the arrival is what you notice. */
+/* IMPORTANT: cards carry Tailwind's `transition-colors duration-300`, whose
+   `transition` shorthand REPLACES this rule's — opacity/transform then had no
+   transition at all and snapped, which is why the reveal read as "no animation".
+   Declaring the two properties individually (rather than via the `transition`
+   shorthand) means Tailwind's transition-property no longer clobbers them. */
+.reveal,
+.reveal.reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .7s ease, transform .7s ease;
+  transform: translateY(40px);
+  transition-property: opacity, transform;
+  transition-duration: 1.1s;
+  transition-timing-function: cubic-bezier(.22, .61, .36, 1);
 }
 .reveal.in-view {
   opacity: 1;
@@ -45,18 +169,24 @@ img.lazy-fade.loaded {
 }
 
 /* Stagger: siblings inside a .stagger container cascade instead of all arriving at once.
-   main.js sets --reveal-delay per item; the cap in JS keeps late items from lagging. */
-.stagger > .reveal {
+   main.js sets --reveal-delay per item; the cap in JS keeps late items from lagging.
+   Descendant (not child) selector so wrapper-based grids — e.g. the FAQ list, where each
+   item sits inside an x-show div — cascade too. */
+.stagger .reveal {
   transition-delay: var(--reveal-delay, 0ms);
 }
 
-/* Directional reveal variants, for alternating/side-entering sections. */
-.reveal-left  { transform: translateX(-32px); }
-.reveal-right { transform: translateX(32px); }
-.reveal-scale { transform: scale(.94); }
-.reveal-left.in-view,
-.reveal-right.in-view { transform: translateX(0); }
-.reveal-scale.in-view { transform: scale(1); }
+/* Directional reveal variants, for alternating/side-entering sections.
+   These are always used together with .reveal, so each selector is doubled up
+   (.reveal.reveal-left) to outrank the plain .reveal / .reveal.in-view rules
+   above — a bare .reveal-left would lose the cascade and never apply. The
+   .in-view states must restate opacity too, since they override the base. */
+.reveal.reveal-left  { transform: translateX(-56px); }
+.reveal.reveal-right { transform: translateX(56px); }
+.reveal.reveal-scale { transform: scale(.92); }
+.reveal.reveal-left.in-view,
+.reveal.reveal-right.in-view { opacity: 1; transform: translateX(0); }
+.reveal.reveal-scale.in-view { opacity: 1; transform: scale(1); }
 
 /* Success checkmark on the booking confirmation: the badge pops, then the tick draws itself. */
 @keyframes successPop {
@@ -95,7 +225,7 @@ img.lazy-fade.loaded {
   bottom: -4px;
   height: 2px;
   width: 100%;
-  background-color: #0B74D1;
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
   transform: scaleX(0);
   transform-origin: left;
   transition: transform .3s ease;
@@ -111,18 +241,43 @@ img.lazy-fade.loaded {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 
+  /* Doubled selectors mirror the directional variants above so this still wins. */
   .reveal,
-  .reveal-left,
-  .reveal-right,
-  .reveal-scale {
+  .reveal.reveal-left,
+  .reveal.reveal-right,
+  .reveal.reveal-scale,
+  .reveal.reveal-left.in-view,
+  .reveal.reveal-right.in-view,
+  .reveal.reveal-scale.in-view {
     opacity: 1;
     transform: none;
     transition: none;
   }
-  .stagger > .reveal { transition-delay: 0ms; }
+  .stagger .reveal { transition-delay: 0ms; }
 
-  .hover-lift:hover { transform: none; }
+  .hover-lift.hover-lift:hover { transform: none; box-shadow: none; }
   .link-underline::after { transition: none; }
+
+  /* Card sheen: keep the colour change, drop the wipe animation. */
+  .card-sheen::before,
+  .card-sheen::after { transition: none; }
+  .card-sheen:hover::before { transform: scaleX(1); }
+
+  /* Neutralise the travel/scale on every hover + press interaction added in the
+     design pass. Colour and shadow feedback is kept — it conveys state without
+     motion. Tailwind emits these as utilities, so they're matched by attribute. */
+  [class*="hover:scale-"]:hover,
+  [class*="group-hover:scale-"],
+  .group:hover [class*="group-hover:scale-"],
+  [class*="hover:-translate-"]:hover,
+  [class*="hover:translate-"]:hover,
+  [class*="group-hover:translate-"],
+  .group:hover [class*="group-hover:translate-"],
+  [class*="hover:rotate-"]:hover,
+  [class*="active:scale-"]:active,
+  [class*="active:translate-"]:active {
+    transform: none !important;
+  }
 
   *, *::before, *::after {
     animation-duration: .01ms !important;
@@ -138,8 +293,9 @@ img.lazy-fade.loaded {
 
 /* Focus visibility for accessibility */
 a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-  outline: 2px solid #14B8A6;
+  outline: 2px solid var(--brand-secondary);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Custom select styling: reset native arrow, add themed chevron + option colors */

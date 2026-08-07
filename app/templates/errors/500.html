@@ -1,12 +1,11 @@
 {% extends "base.html" %}
+{% from "partials/macros.html" import btn %}
 {% block title %}Something Went Wrong — {{ clinic_name }}{% endblock %}
 {% block content %}
 <section class="page-fade max-w-2xl mx-auto px-4 py-32 text-center">
-  <p class="text-8xl font-heading font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">500</p>
-  <h1 class="mt-4 text-2xl md:text-3xl font-heading font-bold text-slate-900 dark:text-white">Something went wrong on our end</h1>
+  <p class="text-8xl font-heading font-extrabold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent animate-float">500</p>
+  <h1 class="mt-4 text-2xl md:text-3xl font-heading font-bold text-slate-900 dark:text-white tracking-wide">Something went wrong on our end</h1>
   <p class="mt-3 text-slate-500 dark:text-slate-400">Please try again in a moment, or contact us if the problem continues.</p>
-  <a href="{{ url_for('main.home') }}" class="inline-flex mt-8 items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold px-6 py-3 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
-    Back to Home
-  </a>
+  {{ btn('Back to Home', url_for('main.home'), extra='mt-8') }}
 </section>
 {% endblock %}

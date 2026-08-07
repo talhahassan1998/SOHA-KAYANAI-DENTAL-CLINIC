@@ -1,11 +1,12 @@
+{% from "partials/macros.html" import btn %}
 <nav x-data="{ mobileOpen: false, scrolled: false }"
      x-init="window.addEventListener('scroll', () => scrolled = window.scrollY > 10)"
      :class="scrolled ? 'shadow-card bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg' : 'bg-white/60 dark:bg-slate-900/60 backdrop-blur-md'"
      class="sticky top-0 z-50 transition-all duration-300 border-b border-slate-100 dark:border-slate-800">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between gap-4 h-16 lg:h-20">
-      <a href="{{ url_for('main.home') }}" class="flex items-center gap-2.5 font-heading text-slate-800 dark:text-white shrink-0 min-w-0">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="{{ clinic_name }} logo" class="w-10 h-10 shrink-0 object-contain">
+      <a href="{{ url_for('main.home') }}" class="group flex items-center gap-2.5 font-heading text-slate-800 dark:text-white shrink-0 min-w-0 hover:opacity-80 transition-opacity">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="{{ clinic_name }} logo" class="w-10 h-10 shrink-0 object-contain group-hover:scale-105 transition-transform duration-300">
         {% set name_parts = clinic_name.rsplit(' ', 2) %}
         <span class="leading-tight truncate max-w-[9rem] sm:max-w-none">
           <span class="block font-bold text-base sm:text-lg">{{ name_parts[0] }}</span>
@@ -15,34 +16,48 @@
         </span>
       </a>
 
+      {#
+        Nav items in one list so desktop and mobile can't drift apart, and so the
+        active page is marked in a single place. `blueprint` matches detail pages
+        too — /services/dental-implants keeps "Services" highlighted. Home is the
+        exception: it must match the exact endpoint, or every main.* page (about,
+        contact, faqs) would light up Home as well.
+      #}
+      {% set nav_items = [
+        ('Home',         url_for('main.home'),               'main.home',  true),
+        ('About',        url_for('main.about'),              'main.about', true),
+        ('Services',     url_for('services.list_services'),  'services',   false),
+        ('Doctors',      url_for('doctors.list_doctors'),    'doctors',    false),
+        ('Gallery',      url_for('gallery.index'),           'gallery',    false),
+        ('Testimonials', url_for('testimonials.index'),      'testimonials', false),
+        ('Blog',         url_for('blog.list_posts'),         'blog',       false),
+        ('FAQs',         url_for('main.faqs'),               'main.faqs',  true),
+        ('Contact',      url_for('main.contact'),            'main.contact', true),
+      ] %}
+
       <div class="hidden xl:flex items-center gap-6 text-sm font-medium whitespace-nowrap">
-        <a href="{{ url_for('main.home') }}" class="link-underline hover:text-primary transition-colors">Home</a>
-        <a href="{{ url_for('main.about') }}" class="link-underline hover:text-primary transition-colors">About</a>
-        <a href="{{ url_for('services.list_services') }}" class="link-underline hover:text-primary transition-colors">Services</a>
-        <a href="{{ url_for('doctors.list_doctors') }}" class="link-underline hover:text-primary transition-colors">Doctors</a>
-        <a href="{{ url_for('gallery.index') }}" class="link-underline hover:text-primary transition-colors">Gallery</a>
-        <a href="{{ url_for('testimonials.index') }}" class="link-underline hover:text-primary transition-colors">Testimonials</a>
-        <a href="{{ url_for('blog.list_posts') }}" class="link-underline hover:text-primary transition-colors">Blog</a>
-        <a href="{{ url_for('main.faqs') }}" class="link-underline hover:text-primary transition-colors">FAQs</a>
-        <a href="{{ url_for('main.contact') }}" class="link-underline hover:text-primary transition-colors">Contact</a>
+        {% for label, href, match, exact in nav_items %}
+        {% set active = (request.endpoint == match) if exact else (request.blueprint == match) %}
+        <a href="{{ href }}"
+           {% if active %}aria-current="page"{% endif %}
+           class="link-underline transition-colors {{ 'text-primary font-semibold' if active else 'hover:text-primary' }}">{{ label }}</a>
+        {% endfor %}
       </div>
 
       <div class="hidden xl:flex items-center gap-4 shrink-0">
-        <button @click="darkMode = !darkMode" class="w-9 h-9 shrink-0 rounded-full grid place-items-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition" aria-label="Toggle dark mode">
+        <button @click="darkMode = !darkMode" class="w-9 h-9 shrink-0 rounded-full grid place-items-center border border-slate-200 dark:border-slate-700 hover:bg-primary-50 dark:hover:bg-slate-800 hover:border-primary hover:text-primary hover:rotate-12 active:scale-90 transition-all duration-300" aria-label="Toggle dark mode">
           <svg x-show="!darkMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M12 3v1M12 20v1M4.2 4.2l.7.7M19.1 19.1l.7.7M3 12h1M20 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/></svg>
           <svg x-show="darkMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
         </button>
-        <a href="{{ url_for('appointments.book') }}" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5 whitespace-nowrap">
-          Book Appointment
-        </a>
+        {{ btn('Book Appointment', url_for('appointments.book'), size='sm', extra='whitespace-nowrap') }}
       </div>
 
       <div class="flex xl:hidden items-center gap-2 shrink-0">
-        <button @click="darkMode = !darkMode" class="w-10 h-10 shrink-0 rounded-full grid place-items-center border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition" aria-label="Toggle dark mode">
+        <button @click="darkMode = !darkMode" class="w-10 h-10 shrink-0 rounded-full grid place-items-center border border-slate-200 dark:border-slate-700 hover:bg-primary-50 dark:hover:bg-slate-800 hover:border-primary hover:text-primary active:scale-90 transition-all duration-300" aria-label="Toggle dark mode">
           <svg x-show="!darkMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M12 3v1M12 20v1M4.2 4.2l.7.7M19.1 19.1l.7.7M3 12h1M20 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/></svg>
           <svg x-show="darkMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
         </button>
-        <button @click="mobileOpen = !mobileOpen" class="w-10 h-10 grid place-items-center text-slate-700 dark:text-white" aria-label="Toggle menu">
+        <button @click="mobileOpen = !mobileOpen" class="w-10 h-10 grid place-items-center rounded-full text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-primary active:scale-90 transition-all duration-300" aria-label="Toggle menu">
           <svg x-show="!mobileOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           <svg x-show="mobileOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </button>
@@ -51,17 +66,15 @@
   </div>
 
   <div x-show="mobileOpen" x-transition x-cloak @click.outside="mobileOpen = false" class="xl:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 px-4 py-4 space-y-1 text-sm font-medium max-h-[calc(100vh-4rem)] overflow-y-auto">
-    <a href="{{ url_for('main.home') }}" class="block py-2.5 hover:text-primary">Home</a>
-    <a href="{{ url_for('main.about') }}" class="block py-2.5 hover:text-primary">About</a>
-    <a href="{{ url_for('services.list_services') }}" class="block py-2.5 hover:text-primary">Services</a>
-    <a href="{{ url_for('doctors.list_doctors') }}" class="block py-2.5 hover:text-primary">Doctors</a>
-    <a href="{{ url_for('gallery.index') }}" class="block py-2.5 hover:text-primary">Gallery</a>
-    <a href="{{ url_for('testimonials.index') }}" class="block py-2.5 hover:text-primary">Testimonials</a>
-    <a href="{{ url_for('blog.list_posts') }}" class="block py-2.5 hover:text-primary">Blog</a>
-    <a href="{{ url_for('main.faqs') }}" class="block py-2.5 hover:text-primary">FAQs</a>
-    <a href="{{ url_for('main.contact') }}" class="block py-2.5 hover:text-primary">Contact</a>
+    {% set mobile_link = 'block py-2.5 px-3 -mx-1 rounded-lg hover:translate-x-1 active:scale-[0.98] transition-all duration-200' %}
+    {% for label, href, match, exact in nav_items %}
+    {% set active = (request.endpoint == match) if exact else (request.blueprint == match) %}
+    <a href="{{ href }}"
+       {% if active %}aria-current="page"{% endif %}
+       class="{{ mobile_link }} {{ 'text-primary font-semibold bg-primary-50 dark:bg-primary-900/25 border-l-2 border-primary' if active else 'hover:text-primary hover:bg-primary-50 dark:hover:bg-primary-900/20' }}">{{ label }}</a>
+    {% endfor %}
     <div class="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
-      <a href="{{ url_for('appointments.book') }}" class="flex items-center justify-center gap-2 bg-primary text-white text-sm font-semibold px-4 py-3 rounded-full w-full">Book Appointment</a>
+      {{ btn('Book Appointment', url_for('appointments.book'), size='sm', extra='w-full') }}
     </div>
   </div>
 </nav>
