@@ -57,6 +57,47 @@ class Config:
 
     RESTX_MASK_SWAGGER = False
 
+    # Voice assistant. Two providers are supported; whichever key is configured wins, with
+    # Gemini preferred when both are (it has a free tier). In either case the standing key
+    # never leaves the server — it only mints the short-lived token the browser connects
+    # with. With no key at all the widget isn't rendered, so the site runs unchanged.
+    #
+    # Gemini talks over a WebSocket carrying raw PCM; OpenAI uses WebRTC. See
+    # app/utils/gemini_client.py and app/utils/openai_client.py.
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+    # The id published in Google's docs isn't visible to every key — this alias is, and it
+    # survives preview snapshots being retired. Check with GET /v1beta/models before changing.
+    # Measured against gemini-2.5-flash-native-audio-latest on the same prompt and tools:
+    # first audio 1.55s vs 12.53s, audio on 3/3 runs vs 2/3, transcripts on 3/3 vs 2/3, and
+    # check_availability + fill_booking_form called on every run rather than intermittently.
+    # It's a preview model, so pin the 2.5 id here if it ever regresses.
+    GEMINI_LIVE_MODEL = os.environ.get("GEMINI_LIVE_MODEL", "gemini-3.1-flash-live-preview")
+    GEMINI_LIVE_VOICE = os.environ.get("GEMINI_LIVE_VOICE", "Kore")
+    # Text model behind the transcript's English translations. Deliberately a small one: the
+    # job is one short line at a time, and it never touches the conversation itself.
+    GEMINI_TRANSLATE_MODEL = os.environ.get("GEMINI_TRANSLATE_MODEL", "gemini-flash-lite-latest")
+    # Off by default: it sends transcript lines to Google a second time, which is the kind of
+    # thing a clinic should switch on deliberately rather than inherit.
+    VOICE_TRANSLATE_ENABLED = _bool(os.environ.get("VOICE_TRANSLATE_ENABLED"), False)
+    # One call per spoken turn, so this tracks conversation length rather than page views.
+    VOICE_TRANSLATE_RATE_LIMIT = int(os.environ.get("VOICE_TRANSLATE_RATE_LIMIT", 120))
+
+    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+    OPENAI_REALTIME_MODEL = os.environ.get("OPENAI_REALTIME_MODEL", "gpt-realtime-2.1")
+    OPENAI_REALTIME_VOICE = os.environ.get("OPENAI_REALTIME_VOICE", "marin")
+    VOICE_ASSISTANT_ENABLED = _bool(os.environ.get("VOICE_ASSISTANT_ENABLED"), True)
+    # Each token starts a billable call, so cap how many one visitor can open.
+    VOICE_TOKEN_RATE_LIMIT = int(os.environ.get("VOICE_TOKEN_RATE_LIMIT", 10))
+    VOICE_TOKEN_RATE_WINDOW = int(os.environ.get("VOICE_TOKEN_RATE_WINDOW", 3600))
+    # Relay reconnects get a wider budget on their own counter: one conversation reopens the
+    # socket every time the assistant moves the patient to another page, so a per-session
+    # limit would cut off anyone who browsed while talking.
+    VOICE_STREAM_RATE_LIMIT = int(os.environ.get("VOICE_STREAM_RATE_LIMIT", 60))
+    # Reconnects after a page load are the same conversation continuing, so they get their
+    # own much wider budget: a single booking navigates three or four times, and counting
+    # those against the new-conversation limit locked people out mid-booking.
+    VOICE_STREAM_RESUME_LIMIT = int(os.environ.get("VOICE_STREAM_RESUME_LIMIT", 400))
+
     @staticmethod
     def init_app(app):
         pass
@@ -67,6 +108,22 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL"
     ) or f"sqlite:///{BASE_DIR / 'instance' / 'dental_clinic.db'}"
+
+    @staticmethod
+    def init_app(app):
+        @app.after_request
+        def no_cache_while_developing(response):
+            """Stop the browser reusing yesterday's page.
+
+            The voice widget's JavaScript is inlined in the HTML rather than served as a
+            static file, so a cached page means cached behaviour: edits appear to have no
+            effect, and a half-updated tab can talk to a fully-updated server. That cost
+            real time to track down once — the browser was still running a build from
+            before a fix while the server had already reloaded.
+            """
+            if response.status_code < 400:
+                response.headers["Cache-Control"] = "no-store, must-revalidate"
+            return response
 
 
 class TestingConfig(Config):

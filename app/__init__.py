@@ -4,7 +4,7 @@ import logging
 from flask import Flask, render_template
 
 from config import config
-from app.extensions import db, migrate, csrf, mail, cache
+from app.extensions import db, migrate, csrf, mail, cache, sock
 
 
 def create_app(config_name="default"):
@@ -17,8 +17,10 @@ def create_app(config_name="default"):
     csrf.init_app(app)
     mail.init_app(app)
     cache.init_app(app)
+    sock.init_app(app)
 
     register_blueprints(app)
+    register_voice_stream(app)
     register_error_handlers(app)
     register_cli(app)
     register_context_processors(app)
@@ -54,6 +56,22 @@ def register_blueprints(app):
     csrf.exempt(api_bp)
 
 
+def register_voice_stream(app):
+    """The Gemini audio relay, registered only when that provider is the active one.
+
+    Skipped entirely for OpenAI (which connects browser-to-provider over WebRTC) and when no
+    key is set, so the route doesn't exist unless it can actually work.
+    """
+    from app.utils.voice_provider import GEMINI, active_provider
+
+    if active_provider(app.config) != GEMINI:
+        return
+
+    from app.api.voice_ws import register_voice_socket
+
+    register_voice_socket(sock, app)
+
+
 def register_error_handlers(app):
     @app.errorhandler(404)
     def not_found(error):
@@ -69,6 +87,11 @@ def register_context_processors(app):
     @app.context_processor
     def inject_clinic_info():
         from datetime import datetime
+
+        from app.utils.openai_client import NAVIGABLE_PAGES
+        from app.utils.voice_provider import active_provider
+
+        voice_provider = active_provider(app.config)
         return {
             "current_year": datetime.utcnow().year,
             "clinic_name": app.config["CLINIC_NAME"],
@@ -80,6 +103,20 @@ def register_context_processors(app):
             "instagram_url": app.config["INSTAGRAM_URL"],
             "twitter_url": app.config["TWITTER_URL"],
             "linkedin_url": app.config["LINKEDIN_URL"],
+            # Drives whether the voice widget renders at all. Without an API key the
+            # assistant can't connect, so showing a dead microphone button would be worse
+            # than showing nothing. The provider also tells the widget which transport to
+            # open — WebSocket for Gemini, WebRTC for OpenAI.
+            "voice_assistant_enabled": voice_provider is not None,
+            "voice_provider": voice_provider,
+            # Only meaningful on the Gemini path, which is where the translate endpoint
+            # lives; with OpenAI selected the widget simply never asks.
+            "voice_translate_enabled": (
+                app.config["VOICE_TRANSLATE_ENABLED"] and voice_provider == "gemini"
+            ),
+            # Shared with the assistant's navigate_to_page tool so the page map has one
+            # definition rather than drifting between the prompt and the browser.
+            "navigable_pages": NAVIGABLE_PAGES,
         }
 
     @app.context_processor

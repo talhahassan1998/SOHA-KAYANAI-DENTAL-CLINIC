@@ -1,25 +1,14 @@
 from flask import render_template, request, flash, redirect, url_for, jsonify, Response, current_app
 
 from app.main import main_bp
-from app.extensions import db, cache
+from app.extensions import db
 from app.forms import ContactForm, NewsletterForm
 from app.models import (
     Doctor, Service, Testimonial, GalleryImage, FAQ, BlogPost, ContactMessage, NewsletterSubscriber
 )
 from app.utils.email import send_contact_notification, send_contact_autoreply
+from app.utils.rate_limit import contact_rate_limited
 from app.utils.seo import build_sitemap_urls
-
-CONTACT_RATE_LIMIT = 5           # max submissions...
-CONTACT_RATE_WINDOW = 60 * 10    # ...per 10 minutes, per IP
-
-
-def _contact_rate_limited():
-    key = f"contact-rate:{request.remote_addr}"
-    count = cache.get(key) or 0
-    if count >= CONTACT_RATE_LIMIT:
-        return True
-    cache.set(key, count + 1, timeout=CONTACT_RATE_WINDOW)
-    return False
 
 
 @main_bp.route("/")
@@ -82,7 +71,7 @@ def contact():
             flash("Thanks for reaching out! Our team will get back to you shortly.", "success")
             return redirect(url_for("main.contact"))
 
-        if _contact_rate_limited():
+        if contact_rate_limited():
             current_app.logger.info("Contact form rate limit hit: ip=%s", request.remote_addr)
             flash("You've sent several messages recently. Please wait a bit before sending another.", "error")
             return redirect(url_for("main.contact"))

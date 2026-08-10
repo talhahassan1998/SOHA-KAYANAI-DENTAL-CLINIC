@@ -1,0 +1,1162 @@
+{% if voice_assistant_enabled %}
+{# Floating voice assistant. Audio goes browser <-> provider directly — a WebSocket carrying
+   raw PCM for Gemini, WebRTC for OpenAI — and the server only mints the short-lived token
+   and answers the assistant's tool calls. The transport is chosen from the token response,
+   so everything below the connection layer is shared between the two. #}
+<div x-data="voiceAssistant()" x-init="resumeIfPending()"
+     x-on:pagehide.window="teardown()" class="print:hidden">
+
+  <!-- Panel -->
+  <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+       x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+       x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+       x-on:keydown.escape.window="open && close()"
+       role="dialog" aria-modal="false" aria-label="Voice assistant"
+       class="fixed bottom-40 right-6 z-[90] w-[min(370px,calc(100vw-3rem))] rounded-2xl bg-white dark:bg-slate-800 shadow-soft border border-slate-100 dark:border-slate-700 overflow-hidden">
+
+    <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+      <span class="relative flex w-9 h-9 shrink-0 rounded-full bg-primary-50 dark:bg-primary-900/40 items-center justify-center text-primary">
+        <span x-show="status === 'listening'" x-cloak
+              class="absolute inset-0 rounded-full bg-primary/30 animate-ping"></span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="relative w-4 h-4">
+          <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <div class="min-w-0 flex-1">
+        <p class="font-heading font-semibold text-sm text-slate-800 dark:text-white leading-tight">Talk to us</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 truncate" x-text="statusLabel"></p>
+      </div>
+      <button type="button" @click="close()" aria-label="Close voice assistant"
+              class="shrink-0 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:rotate-90 active:scale-90 transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    {# Voice only: no transcript. What was said is heard, not read — the panel shows the
+       state of the call and nothing else. The turns are still tracked internally, because a
+       page load has to hand the conversation to the new Gemini session to keep it from
+       forgetting the booking and re-detecting the language. #}
+    <div class="px-5 py-8 flex flex-col items-center justify-center text-center min-h-[9rem]">
+      {# A ring that pulses while listening and holds steady while speaking, so the patient
+         can tell whose turn it is without anything being written down. #}
+      <div class="relative grid place-items-center w-20 h-20">
+        <span x-show="status === 'listening'" x-cloak
+              class="absolute inset-0 rounded-full bg-primary/20 animate-ping"></span>
+        <span x-show="status === 'speaking'" x-cloak
+              class="absolute inset-0 rounded-full bg-secondary/25 animate-pulse"></span>
+        <span :class="status === 'speaking'
+                ? 'bg-secondary/15 text-secondary'
+                : (status === 'error' ? 'bg-red-50 text-red-400 dark:bg-red-900/30' : 'bg-primary-50 dark:bg-primary-900/40 text-primary')"
+              class="relative grid place-items-center w-16 h-16 rounded-full transition-colors duration-300">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-7 h-7">
+            <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+      </div>
+
+      {# One line, not a transcript: the assistant's latest sentence only, replaced each time
+         it speaks. Without it "Listening…" looks identical whether the assistant is waiting
+         for an answer or has quietly stalled — it had already asked for a phone number and
+         there was no way to tell. dir="auto" so an Urdu reply reads right-to-left. #}
+      <p x-show="status !== 'error' && lastSaid" x-cloak dir="auto"
+         class="mt-4 text-sm text-slate-700 dark:text-slate-200 max-w-[17rem] leading-snug"
+         x-text="lastSaid"></p>
+
+      <p x-show="status !== 'error' && !lastSaid" class="mt-4 text-xs text-slate-500 dark:text-slate-400 max-w-[16rem]">
+        <span x-show="!connected" x-cloak>Speak in Urdu or English — we'll reply in English, or ask us to switch.</span>
+        <span x-show="connected" x-cloak>Go ahead, I'm listening.</span>
+      </p>
+
+      {# A quiet second line for the state itself, so the sentence above doesn't have to
+         double as a status indicator. #}
+      <p x-show="connected && status !== 'error'" x-cloak
+         class="mt-2 text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500"
+         x-text="status === 'speaking' ? 'Speaking' : 'Listening — your turn'"></p>
+
+      <p x-show="status === 'error'" x-cloak class="mt-4 text-xs text-red-500 max-w-[16rem]" x-text="errorMessage"></p>
+    </div>
+
+    <div class="px-5 py-4 border-t border-slate-100 dark:border-slate-700">
+      <button type="button" @click="connected ? stop() : start()" :disabled="status === 'connecting'"
+              :class="connected
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : (status === 'connecting'
+                   ? 'bg-slate-300 dark:bg-slate-700 text-white cursor-not-allowed'
+                   : 'bg-primary hover:bg-primary-600 text-white hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5')"
+              class="w-full font-semibold py-3 rounded-full text-sm transition-all duration-300 ease-out active:scale-[0.98]">
+        <span x-text="connected ? 'End conversation' : (status === 'connecting' ? 'Connecting…' : 'Start talking')"></span>
+      </button>
+      <p class="mt-2.5 text-center text-[11px] text-slate-400 dark:text-slate-500">
+        For emergencies call <a href="tel:{{ clinic_phone }}" class="font-semibold underline">{{ clinic_phone }}</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Launcher -->
+  <button type="button" @click="open ? close() : open = true"
+          :aria-expanded="open" aria-label="Talk to the clinic assistant"
+          class="group fixed bottom-24 right-6 z-40 w-12 h-12 rounded-full bg-primary text-white shadow-lg grid place-items-center transition-all duration-300 hover:bg-primary-600 hover:scale-110 hover:shadow-xl hover:shadow-primary/40 active:scale-95">
+    <span x-show="connected" x-cloak class="absolute inset-0 rounded-full bg-primary/40 animate-ping"></span>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="relative w-5 h-5">
+      <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  </button>
+</div>
+
+<script>
+function voiceAssistant() {
+  return {
+    open: false,
+    connected: false,
+    status: "idle",          // idle | connecting | listening | speaking | error
+    errorMessage: "",
+    turns: [],
+    pc: null,
+    dc: null,
+    micStream: null,
+    audioEl: null,
+    // Gemini path only: WebSocket transport plus the hand-rolled audio pipeline.
+    ws: null,
+    audioCtx: null,
+    playbackCtx: null,
+    workletNode: null,
+    sources: [],
+    playHead: 0,
+    pendingUser: "",
+    pendingAssistant: "",
+    justResumed: false,
+    // Set once an appointment has actually been created in this conversation. The
+    // confirmation page is a destination rather than a step, so nothing may quietly move
+    // the patient off it afterwards.
+    booked: false,
+    // Details gathered so far, accumulated across tool calls and carried over navigation.
+    known: {},
+    // Set while the model is acknowledging a replayed conversation, so that reply is
+    // neither played nor counted as a turn.
+    swallowNextTurn: false,
+    // The assistant's most recent sentence, shown on screen so a patient can see what they
+    // are being asked while it waits for them.
+    lastSaid: "",
+    // Set between a successful booking and the end of the sentence confirming it, so the
+    // call closes itself the moment that sentence finishes.
+    endAfterBooking: false,
+
+    get statusLabel() {
+      return {
+        idle: "Tap to start — speak Urdu or English",
+        connecting: "Connecting…",
+        listening: "Listening…",
+        speaking: "Speaking…",
+        error: "Something went wrong",
+      }[this.status] || "";
+    },
+
+    close() {
+      this.open = false;
+      this.teardown();
+    },
+
+    async start() {
+      if (this.connected || this.status === "connecting") return;
+      // A sentence left from an earlier call would read as if it had just been said. Keep it
+      // when resuming mid-conversation, since that is the same call continuing.
+      if (!this.turns.length) this.lastSaid = "";
+      this.status = "connecting";
+      this.errorMessage = "";
+
+      try {
+        // 1. Short-lived credential. The standing API key stays on the server, which also
+        //    tells us which provider it minted for — their credentials aren't compatible.
+        const tokenRes = await fetch("/api/v1/voice/token", { method: "POST" });
+        if (!tokenRes.ok) {
+          throw new Error(tokenRes.status === 429
+            ? "You've started several conversations recently. Please try again in a little while."
+            : "The assistant isn't available right now. Please call us instead.");
+        }
+        const session = await tokenRes.json();
+        const key = session.value || (session.client_secret && session.client_secret.value);
+        // Gemini connects to our own relay and needs no credential here; OpenAI does.
+        if (session.provider !== "gemini" && !key) {
+          throw new Error("The assistant isn't available right now.");
+        }
+
+        // 2. Microphone. Ask only after the token succeeds, so a misconfigured server
+        //    doesn't trigger a permission prompt for nothing.
+        //    autoGainControl is off deliberately. It sounds like the right thing — quiet
+        //    speech gets lifted — but on a close-talked or Bluetooth headset it drives the
+        //    signal past full scale, and the clipped audio reached Gemini as distortion it
+        //    transcribed as gibberish (Thai characters inside an English sentence), which in
+        //    turn made it guess the wrong language. The worklet's own limiter below keeps
+        //    the level safe without ever pushing it into the ceiling.
+        //    No sampleRate constraint: pinning it can make getUserMedia fail outright on
+        //    devices that don't offer that rate, and the AudioContext resamples anyway.
+        this.micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: false,
+            channelCount: 1,
+          },
+        });
+
+        if (session.provider === "gemini") {
+          await this.connectGemini(session);
+        } else {
+          await this.connectOpenAI(key);
+        }
+      } catch (err) {
+        if (err && (err.name === "NotAllowedError" || err.name === "SecurityError")) {
+          this.fail("I need permission to use your microphone. Enable it in your browser and try again.");
+        } else if (err && err.name === "NotFoundError") {
+          this.fail("I couldn't find a microphone on this device.");
+        } else {
+          this.fail((err && err.message) || "Something went wrong. Please try again.");
+        }
+      }
+    },
+
+    // --- OpenAI Realtime: WebRTC ------------------------------------------------------
+    async connectOpenAI(key) {
+      const pc = new RTCPeerConnection();
+      this.pc = pc;
+
+      this.audioEl = document.createElement("audio");
+      this.audioEl.autoplay = true;
+      pc.ontrack = (e) => { this.audioEl.srcObject = e.streams[0]; };
+      pc.addTrack(this.micStream.getTracks()[0]);
+
+      pc.onconnectionstatechange = () => {
+        if (["failed", "disconnected", "closed"].includes(pc.connectionState) && this.connected) {
+          this.fail("The connection dropped. Please try again.");
+        }
+      };
+
+      const dc = pc.createDataChannel("oai-events");
+      this.dc = dc;
+      dc.addEventListener("message", (e) => this.handleEvent(JSON.parse(e.data)));
+      dc.addEventListener("open", () => {
+        this.connected = true;
+        this.status = "listening";
+      });
+
+      // Instructions and tools are already pinned to the token server-side, so nothing
+      // sensitive is configured from here.
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      const sdpRes = await fetch("https://api.openai.com/v1/realtime/calls", {
+        method: "POST",
+        body: offer.sdp,
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/sdp" },
+      });
+      if (!sdpRes.ok) {
+        // Log the provider's actual explanation — quota, bad key, unknown model all look
+        // identical to the patient otherwise, and cost hours to diagnose.
+        const detail = await sdpRes.text().catch(() => "");
+        console.error("Realtime SDP failed:", sdpRes.status, detail.slice(0, 500));
+        throw new Error("Couldn't connect the call. Please try again.");
+      }
+      await pc.setRemoteDescription({ type: "answer", sdp: await sdpRes.text() });
+    },
+
+    // --- Gemini Live: WebSocket + raw PCM ----------------------------------------------
+    // WebRTC handled encoding, resampling and playback for us; here all three are manual.
+    // Mic gives Float32 at the device's rate, Gemini wants 16-bit PCM at 16kHz, and its
+    // replies come back as 24kHz PCM chunks that have to be queued to play gaplessly.
+    //
+    // The socket goes to our own server, not to Google: Gemini's ephemeral tokens don't
+    // work yet, so the relay holds the API key and sends the session config upstream.
+    async connectGemini(session) {
+      const scheme = location.protocol === "https:" ? "wss" : "ws";
+      // Tell the relay this socket is one conversation continuing across a page load, not a
+      // new one. Moving the patient between pages reopens the socket several times per
+      // booking, and counting each as a fresh conversation used up the hourly budget in a
+      // single sitting. The relay still counts resumes, just against a much wider budget —
+      // the flag can be forged, so it must not be a way to opt out of being counted.
+      const resumed = this.justResumed ? "?resumed=1" : "";
+      const ws = new WebSocket(`${scheme}://${location.host}${session.stream_path}${resumed}`);
+      this.ws = ws;
+      ws.binaryType = "arraybuffer";
+
+      await new Promise((resolve, reject) => {
+        ws.onopen = resolve;
+        ws.onerror = () => reject(new Error("Couldn't connect the call. Please try again."));
+      });
+
+      // Covers a socket that dies during setup too, not just an established call — without
+      // the second branch that failure is silent and the UI sits on "Connecting…".
+      ws.onclose = () => {
+        if (this.connected || this.status === "connecting") {
+          this.fail("The connection dropped. Please try again.");
+        }
+      };
+      ws.onmessage = async (e) => {
+        const raw = typeof e.data === "string" ? e.data : await new Blob([e.data]).text();
+        let msg;
+        try { msg = JSON.parse(raw); } catch (err) { return; }
+        this.handleGeminiMessage(msg);
+      };
+
+      this.replayHistory();
+      await this.startCapture();
+    },
+
+    // Hand the new session everything that was said before it existed.
+    //
+    // A page load closes the socket, and the socket is the session — Gemini keeps no state
+    // of its own between connections, so without this the model wakes up mid-booking with a
+    // blank history. Two things break as a result: it asks again for details the patient
+    // already gave, and, because it re-detects the language from the next fragment it hears,
+    // it can answer the same patient in a different language than a moment earlier. Both are
+    // the same bug. Replaying the turns fixes both, and costs one text frame.
+    replayHistory() {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+      // Recent turns only: the whole point is continuity across one navigation, and a long
+      // transcript would push real cost into every page change.
+      const recent = this.turns.slice(-12).filter((t) => t.text);
+      const hasKnown = Object.values(this.known || {}).some((v) => v !== undefined && v !== "");
+
+      // Nothing at all to carry: a plain page load rather than a navigation mid-booking.
+      // Staying quiet is right here — the patient hasn't asked for anything yet.
+      if (!recent.length && !hasKnown) return;
+
+      // Turns only appear once a transcript completes, so navigating mid-sentence can leave
+      // this empty while details are already gathered. Speaking from what we know beats
+      // going silent and making the patient say it all again.
+
+      const spoken = recent.map((t) => `${t.role === "user" ? "Patient" : "You"}: ${t.text}`).join("\n");
+      const known = Object.entries(this.known || {})
+        .filter(([, v]) => v !== undefined && v !== "")
+        .map(([k, v]) => `${k}: ${v}`).join(", ");
+
+      // The reply to this frame is the first thing the patient hears on the new page, so it
+      // must NOT be swallowed. Suppressing it — which is what this used to do — left them
+      // staring at a booking page in silence, with no idea whether the assistant was still
+      // there, and having to repeat what they had already asked for.
+      this.swallowNextTurn = false;
+
+      this.ws.send(JSON.stringify({
+        clientContent: {
+          turns: [{
+            role: "user",
+            parts: [{
+              text: "[SYSTEM — not spoken by the patient. The page reloaded and this call "
+                + "reconnected.]\n\n"
+                + (spoken ? "This is the conversation so far.\n\n" + spoken
+                          : "The patient asked to book an appointment and you brought them "
+                            + "to this page.")
+                + (known ? `\n\n[Details already confirmed: ${known}]` : "")
+                + "\n\n[Carry on exactly where it left off. Do not greet them again, do not "
+                + "start over, and do not ask for anything already listed as confirmed. Say "
+                + "nothing about the page reloading or about any tool.]\n\n"
+                + "[The patient is now looking at this page and is waiting to hear from you. "
+                + "SPEAK FIRST — do not wait for them. Say one short sentence that moves the "
+                + "booking forward from exactly where it stopped: ask for the next detail you "
+                + "still need, or if you have everything, read it back for confirmation. Fill "
+                + "the form with whatever is already confirmed as you speak. Never open with "
+                + "silence, a greeting, or \"how can I help\" — they already told you.]",
+            }],
+          }],
+          // Must be true, and this took a while to see. Leaving the turn open looks tidier —
+          // the context isn't a question and shouldn't be answered — but an open turn means
+          // whatever the patient says next is appended to this one, so the model hears its
+          // own briefing and their sentence as a single utterance. The replies come back
+          // subtly wrong ("Talha Hassan, mein naam shukriya"), details get asked for twice,
+          // and instructions half-execute. Closing the turn keeps the briefing separate from
+          // the speech that follows it.
+          turnComplete: true,
+        },
+      }));
+    },
+
+    async startCapture() {
+      // Separate contexts: capture runs at 16kHz (Gemini's input rate) so the browser does
+      // the resampling for us, playback at 24kHz to match what comes back.
+      const ctx = new AudioContext({ sampleRate: 16000 });
+      this.audioCtx = ctx;
+      if (ctx.state === "suspended") await ctx.resume();
+
+      // The hard Math.min(1, …) below used to be the whole story, and it was the bug: the
+      // browser's automatic gain control pushes a close-talked mic past full scale, every
+      // sample over 1.0 flattened to the same value, and Gemini received square-edged
+      // distortion. It transcribed that as gibberish — Thai characters in the middle of an
+      // English sentence — and then re-guessed the language from its own bad transcript.
+      //
+      // So: track the recent peak and, when it approaches full scale, scale the whole buffer
+      // down to sit under a ceiling. Gain is applied smoothly and recovers slowly, because a
+      // gain that jumps between buffers is audible as pumping and confuses the recogniser
+      // just as much as clipping does.
+      const worklet = `
+        class PCMSource extends AudioWorkletProcessor {
+          constructor() { super(); this.gain = 1; }
+          process(inputs) {
+            const ch = inputs[0] && inputs[0][0];
+            if (ch) {
+              const CEILING = 0.89;
+              let peak = 0;
+              for (let i = 0; i < ch.length; i++) {
+                const a = ch[i] < 0 ? -ch[i] : ch[i];
+                if (a > peak) peak = a;
+              }
+              // Only ever reduce below the ceiling; quiet speech is left exactly as it is so
+              // this never amplifies room noise.
+              const wanted = peak * this.gain > CEILING ? CEILING / peak : 1;
+              // Duck fast to catch a sudden shout, recover gently afterwards.
+              this.gain = wanted < this.gain ? wanted : this.gain + (wanted - this.gain) * 0.05;
+
+              const pcm = new Int16Array(ch.length);
+              for (let i = 0; i < ch.length; i++) {
+                let s = ch[i] * this.gain;
+                if (s > 1) s = 1; else if (s < -1) s = -1;
+                pcm[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+              }
+              this.port.postMessage(pcm.buffer, [pcm.buffer]);
+            }
+            return true;
+          }
+        }
+        registerProcessor('pcm-source', PCMSource);
+      `;
+      const url = URL.createObjectURL(new Blob([worklet], { type: "application/javascript" }));
+      await ctx.audioWorklet.addModule(url);
+      URL.revokeObjectURL(url);
+
+      const node = new AudioWorkletNode(ctx, "pcm-source");
+      this.workletNode = node;
+      // The mic and the context can end up at different rates — asking getUserMedia for a
+      // sampleRate is a hint, not a guarantee, and a context that refuses the requested rate
+      // resamples silently. Gemini is told the rate the context actually runs at rather than
+      // a hard-coded 16000, because sending the wrong rate makes the audio unintelligible
+      // and the model simply never answers.
+      const rate = Math.round(ctx.sampleRate);
+      if (rate !== 16000) {
+        console.warn(`[voice] capture context is ${rate}Hz, not 16000Hz — telling Gemini ${rate}`);
+      }
+      node.port.onmessage = (e) => {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+        // A silent buffer every time means the mic is muted or routed to the wrong device,
+        // which otherwise looks identical to the assistant ignoring the patient.
+        this.audioChunks = (this.audioChunks || 0) + 1;
+        if (this.audioChunks === 50) {
+          const pcm = new Int16Array(e.data);
+          let peak = 0;
+          for (let i = 0; i < pcm.length; i++) peak = Math.max(peak, Math.abs(pcm[i]));
+          console.log(`[voice] ${this.audioChunks} chunks sent at ${rate}Hz; recent peak level ${peak}`
+            + (peak < 100 ? " — THIS IS SILENCE, check the microphone/input device" : ""));
+        }
+        this.ws.send(JSON.stringify({
+          realtimeInput: {
+            audio: { data: this.toBase64(e.data), mimeType: `audio/pcm;rate=${rate}` },
+          },
+        }));
+      };
+
+      ctx.createMediaStreamSource(this.micStream).connect(node);
+      // The worklet emits nothing downstream, but Chrome only runs it once it's connected
+      // to a destination, so route it through a silent gain node.
+      const silent = ctx.createGain();
+      silent.gain.value = 0;
+      node.connect(silent).connect(ctx.destination);
+
+      // Setting up the microphone takes long enough that the socket can be gone by now.
+      // Reporting "listening" on a dead socket is the worst outcome: the patient keeps
+      // talking into a call that ended.
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        throw new Error("The connection dropped. Please try again.");
+      }
+
+      this.connected = true;
+      this.status = "listening";
+    },
+
+    toBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      }
+      return btoa(binary);
+    },
+
+    handleGeminiMessage(msg) {
+      // The relay's own problems, distinct from anything Gemini sends.
+      if (msg.error) {
+        this.fail(msg.error === "rate_limited"
+          ? "You've started several conversations recently. Please try again in a little while."
+          : "The assistant isn't available right now. Please call us instead.");
+        return;
+      }
+      if (msg.setupComplete) return;
+
+      if (msg.toolCall) {
+        (msg.toolCall.functionCalls || []).forEach((fc) => this.runGeminiTool(fc));
+        return;
+      }
+
+      const sc = msg.serverContent;
+      if (!sc) return;
+
+      // The acknowledgement of a replayed conversation: drop its audio and its transcript,
+      // and clear the flag once the turn ends so the next reply is heard normally.
+      if (this.swallowNextTurn) {
+        if (sc.turnComplete) {
+          this.swallowNextTurn = false;
+          this.pendingAssistant = "";
+          if (this.connected) this.status = "listening";
+        }
+        return;
+      }
+
+      // The patient interrupted — drop anything still queued or the assistant talks over them.
+      if (sc.interrupted) {
+        this.flushPlayback();
+        this.status = "listening";
+      }
+
+      // Booking done: once the confirmation sentence has been spoken, close the call. The
+      // microphone stops here rather than on the next page, so nothing is being recorded
+      // while the summary plays out and the patient is never left with a live call they
+      // have to remember to end.
+      if (this.endAfterBooking && sc.turnComplete) {
+        this.endAfterBooking = false;
+        this.finishAfterBooking();
+        return;
+      }
+
+      if (sc.inputTranscription && sc.inputTranscription.text) {
+        this.pendingUser = (this.pendingUser || "") + sc.inputTranscription.text;
+      }
+      if (sc.outputTranscription && sc.outputTranscription.text) {
+        this.pendingAssistant = (this.pendingAssistant || "") + sc.outputTranscription.text;
+        // Update as it speaks rather than at the end of the turn: the sentence should be
+        // readable while it is being said, which is also when a patient is trying to work
+        // out whether they have been asked something.
+        this.lastSaid = this.pendingAssistant.trim();
+      }
+
+      (((sc.modelTurn || {}).parts) || []).forEach((part) => {
+        if (part.inlineData && part.inlineData.data) {
+          this.status = "speaking";
+          this.enqueueAudio(part.inlineData.data);
+        }
+      });
+
+      if (sc.turnComplete) {
+        // Flush both transcripts together so the log reads as a conversation.
+        if (this.pendingUser) { this.addTurn("user", this.pendingUser.trim()); this.pendingUser = ""; }
+        if (this.pendingAssistant) { this.addTurn("assistant", this.pendingAssistant.trim()); this.pendingAssistant = ""; }
+        if (this.connected) this.status = "listening";
+      }
+    },
+
+    async runGeminiTool(fc) {
+      let result;
+      try {
+        result = await this.dispatch(fc.name, fc.args || {});
+      } catch (err) {
+        result = { ok: false, message: "That didn't work. Please offer the clinic phone number." };
+      }
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({
+          toolResponse: { functionResponses: [{ id: fc.id, name: fc.name, response: result }] },
+        }));
+      }
+    },
+
+    // Chunks arrive faster than they play, so schedule each one after the last rather than
+    // starting them all at once — otherwise the reply overlaps itself.
+    enqueueAudio(base64) {
+      if (!this.playbackCtx) this.playbackCtx = new AudioContext({ sampleRate: 24000 });
+      const ctx = this.playbackCtx;
+
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const pcm = new Int16Array(bytes.buffer);
+
+      const buffer = ctx.createBuffer(1, pcm.length, 24000);
+      const channel = buffer.getChannelData(0);
+      for (let i = 0; i < pcm.length; i++) channel[i] = pcm[i] / 0x8000;
+
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(ctx.destination);
+
+      const startAt = Math.max(ctx.currentTime, this.playHead || 0);
+      src.start(startAt);
+      this.playHead = startAt + buffer.duration;
+
+      this.sources = this.sources || [];
+      this.sources.push(src);
+      src.onended = () => {
+        this.sources = (this.sources || []).filter((s) => s !== src);
+      };
+    },
+
+    flushPlayback() {
+      (this.sources || []).forEach((s) => { try { s.stop(); } catch (e) {} });
+      this.sources = [];
+      this.playHead = 0;
+    },
+
+    fail(message) {
+      this.errorMessage = message;
+      this.status = "error";
+      this.teardown();
+    },
+
+    stop() {
+      this.teardown();
+      this.status = "idle";
+    },
+
+    // End the call once the booking is confirmed, without cutting off the sentence that
+    // confirms it. The microphone and the socket go immediately — nothing more needs to be
+    // heard, and leaving them open is a recording indicator on a patient who has finished —
+    // but the playback context is left alone so the audio already queued still plays.
+    finishAfterBooking() {
+      if (this.micStream) {
+        this.micStream.getTracks().forEach((t) => t.stop());
+        this.micStream = null;
+      }
+      if (this.workletNode) { try { this.workletNode.disconnect(); } catch (e) {} this.workletNode = null; }
+      if (this.audioCtx) { try { this.audioCtx.close(); } catch (e) {} this.audioCtx = null; }
+      if (this.ws) {
+        this.ws.onclose = null;
+        try { this.ws.close(); } catch (e) {}
+        this.ws = null;
+      }
+      if (this.dc) { try { this.dc.close(); } catch (e) {} this.dc = null; }
+      if (this.pc) { try { this.pc.close(); } catch (e) {} this.pc = null; }
+
+      this.connected = false;
+      this.status = "idle";
+      this.pendingUser = "";
+      this.pendingAssistant = "";
+    },
+
+    teardown() {
+      // Release the microphone explicitly — without this the browser keeps showing the
+      // recording indicator after the panel closes.
+      if (this.micStream) {
+        this.micStream.getTracks().forEach((t) => t.stop());
+        this.micStream = null;
+      }
+      if (this.dc) { try { this.dc.close(); } catch (e) {} this.dc = null; }
+      if (this.pc) { try { this.pc.close(); } catch (e) {} this.pc = null; }
+      if (this.audioEl) { this.audioEl.srcObject = null; this.audioEl = null; }
+
+      // Gemini path. Drop onclose first so tearing down deliberately doesn't surface as
+      // "the connection dropped".
+      if (this.ws) {
+        this.ws.onclose = null;
+        try { this.ws.close(); } catch (e) {}
+        this.ws = null;
+      }
+      this.flushPlayback();
+      if (this.workletNode) { try { this.workletNode.disconnect(); } catch (e) {} this.workletNode = null; }
+      if (this.audioCtx) { try { this.audioCtx.close(); } catch (e) {} this.audioCtx = null; }
+      if (this.playbackCtx) { try { this.playbackCtx.close(); } catch (e) {} this.playbackCtx = null; }
+      this.pendingUser = "";
+      this.pendingAssistant = "";
+
+      this.connected = false;
+      if (this.status !== "error") this.status = "idle";
+    },
+
+    send(payload) {
+      if (this.dc && this.dc.readyState === "open") this.dc.send(JSON.stringify(payload));
+    },
+
+    addTurn(role, text) {
+      if (!text) return;
+      // Kept only so a page load can hand the conversation to the next Gemini session —
+      // nothing is rendered. Capped because the replay sends the tail of this, and an
+      // unbounded array on a long call is just memory nobody reads.
+      this.turns.push({ role, text });
+      if (this.turns.length > 24) this.turns = this.turns.slice(-24);
+    },
+
+    handleEvent(evt) {
+      switch (evt.type) {
+        // Live transcript of what the patient said, in whatever language they used.
+        case "conversation.item.input_audio_transcription.completed":
+          this.addTurn("user", (evt.transcript || "").trim());
+          break;
+        case "response.output_audio_transcript.done":
+        case "response.audio_transcript.done":
+          this.addTurn("assistant", (evt.transcript || "").trim());
+          this.status = this.connected ? "listening" : this.status;
+          break;
+        case "response.created":
+          if (this.connected) this.status = "speaking";
+          break;
+        case "response.done":
+          if (this.connected) this.status = "listening";
+          break;
+        case "response.function_call_arguments.done":
+          this.runTool(evt);
+          break;
+        case "error":
+          this.fail("The assistant hit a problem. Please try again, or call us.");
+          break;
+      }
+    },
+
+    async runTool(evt) {
+      let args = {};
+      try { args = JSON.parse(evt.arguments || "{}"); } catch (e) {}
+
+      let result;
+      try {
+        result = await this.dispatch(evt.name, args);
+      } catch (err) {
+        result = { ok: false, message: "That didn't work. Please offer the clinic phone number." };
+      }
+
+      // Hand the outcome back, then ask the model to speak about it.
+      this.send({
+        type: "conversation.item.create",
+        item: {
+          type: "function_call_output",
+          call_id: evt.call_id,
+          output: JSON.stringify(result),
+        },
+      });
+      this.send({ type: "response.create" });
+    },
+
+    async dispatch(name, args) {
+      // Remember every detail the model mentions, whichever tool it came through, so that
+      // navigating mid-conversation can carry the booking forward instead of landing the
+      // patient on an empty form and asking them again. This has to happen before the
+      // page-acting tools return below: the values the model sends to fill_booking_form are
+      // often the only place it ever states them, and losing them meant a fill that arrived
+      // a moment too early left nothing behind to retry with.
+      this.rememberDetails(args);
+
+      // These three act on the page itself — no round trip needed.
+      if (name === "navigate_to_page") return this.navigateToPage(args);
+      if (name === "fill_booking_form") return this.fillBookingForm(args);
+      if (name === "fill_contact_form") return this.fillContactForm(args);
+
+      // Follow what the model is *doing* rather than what it says. Asked to book, it
+      // reliably calls check_availability but only sometimes calls navigate_to_page —
+      // while still telling the patient it opened the page. Rather than trusting it to
+      // pair the two (prompt wording moved the failure around without fixing it, and it
+      // failed every time in Urdu), treat working on a booking as the signal to be on the
+      // booking page.
+      this.ensurePageFor(name);
+
+      const routes = {
+        lookup_clinic_info: "/api/v1/voice/info",
+        check_availability: "/api/v1/voice/availability",
+        book_appointment: "/api/v1/voice/book",
+        submit_contact_form: "/api/v1/voice/contact",
+      };
+      const url = routes[name];
+      if (!url) return { ok: false, message: "I can't do that." };
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(args),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      const result = data && Object.keys(data).length
+        ? data
+        : { ok: false, message: "That didn't work. Please offer the clinic phone number." };
+
+      // A booking that actually went through ends on the patient's confirmation page — the
+      // same place the HTML form sends them. The server hands back the URL rather than the
+      // widget assembling one, and this follows navigate_to_page's pattern: the model gets
+      // the result and speaks the summary, then the page moves under it and the call is
+      // picked up again on the other side.
+      if (name === "book_appointment" && result.ok && result.redirect_url) {
+        // The details just consumed belong to the appointment that now exists. Keeping them
+        // would silently pre-fill a second booking with the first one's date and time.
+        this.known = {};
+        this.booked = true;
+
+        // The booking is finished, so the call is too. Deliberately NOT stashed: stashing
+        // makes the confirmation page pick the conversation back up and hold the microphone
+        // open on someone who is done, which is both a live mic they didn't ask for and a
+        // meter still running.
+        this.endAfterBooking = true;
+        setTimeout(() => { window.location.assign(result.redirect_url); }, 2600);
+      }
+
+      return result;
+    },
+
+    // --- Navigation ------------------------------------------------------------------
+    // A page load tears down the socket and the audio pipeline, so the conversation is
+    // stashed first and picked up again by init() on the other side. The patient hears a
+    // short gap rather than the call ending.
+
+    navigateToPage(args) {
+      const pages = {{ navigable_pages | tojson }};
+      const path = pages[(args.page || "").trim().toLowerCase()];
+      if (!path) return { ok: false, message: "I don't have a page for that." };
+
+      // Already there: say so rather than reloading and dropping the call for nothing.
+      if (window.location.pathname.replace(/\/$/, "") === path.replace(/\/$/, "")) {
+        return { ok: true, message: "The patient is already on that page." };
+      }
+
+      // Heading somewhere with a form, and details have already been given: queue the fill
+      // so it happens on arrival. Otherwise the patient watches the page open and nothing
+      // else, and has to repeat everything they already said.
+      const target = path.replace(/\/$/, "") === "/book-appointment" ? "booking"
+        : (path.replace(/\/$/, "") === "/contact" ? "contact" : null);
+      let pending = null;
+      if (target) {
+        const fillArgs = this.knownFor(target);
+        if (Object.values(fillArgs).some((v) => v !== undefined && v !== "")) {
+          pending = {
+            tool: target === "contact" ? "fill_contact_form" : "fill_booking_form",
+            args: fillArgs,
+          };
+        }
+      }
+
+      this.stash(pending);
+      // Let the tool result reach the model before the page goes away, so it can speak
+      // first and the patient knows what's happening.
+      setTimeout(() => { window.location.assign(path); }, 900);
+      return {
+        ok: true,
+        message: pending
+          ? "Opening that page and putting their details in as it loads. Tell them where "
+            + "they're going, then read the details back and finish the booking."
+          : "Opening that page now. Tell the patient where they're going.",
+      };
+    },
+
+    // Which page a tool implies the patient should be looking at. Only tools that mean
+    // "we are working on this together" count — lookup_clinic_info is just a question and
+    // must not move anybody.
+    pageForTool(name) {
+      if (name === "check_availability") return "booking";
+      if (name === "submit_contact_form") return "contact";
+      return null;
+    },
+
+    // Details worth carrying across a page load. Names match the form-filling tools, so
+    // whatever has been gathered can be handed straight to fillBookingForm/fillContactForm.
+    rememberDetails(args) {
+      if (!args || typeof args !== "object") return;
+      const keep = [
+        "full_name", "name", "email", "phone", "gender", "service_name", "doctor_name",
+        "date", "time", "notes", "subject", "message",
+      ];
+      this.known = this.known || {};
+      keep.forEach((k) => {
+        if (args[k] !== undefined && args[k] !== null && args[k] !== "") this.known[k] = args[k];
+      });
+    },
+
+    // Reshape what we know into the arguments a form-filling tool expects.
+    knownFor(page) {
+      const k = this.known || {};
+      if (page === "contact") {
+        return {
+          name: k.name || k.full_name, email: k.email, phone: k.phone,
+          subject: k.subject, message: k.message || k.notes,
+        };
+      }
+      return {
+        full_name: k.full_name || k.name, email: k.email, phone: k.phone,
+        gender: k.gender, service_name: k.service_name, doctor_name: k.doctor_name,
+        date: k.date, time: k.time, notes: k.notes,
+      };
+    },
+
+    ensurePageFor(name) {
+      const page = this.pageForTool(name);
+      if (!page) return;
+
+      // The appointment exists and the patient is reading their confirmation. Asked "can I
+      // come in again?", the model reaches for check_availability, and letting that move
+      // anybody would throw away the page we just brought them to. If they really do want a
+      // second appointment the model still has navigate_to_page — a deliberate act rather
+      // than a side effect of looking something up.
+      if (this.booked) return;
+
+      const pages = {{ navigable_pages | tojson }};
+      const path = pages[page];
+      const here = window.location.pathname.replace(/\/$/, "");
+      if (!path || here === path.replace(/\/$/, "")) return;
+
+      // Deliberately NOT skipped when the current page happens to contain the same form.
+      // The home page embeds the booking form, and staying put to fill it in seemed
+      // tidier — but the assistant still says "I'm opening the booking page", so the
+      // patient hears a promise the browser doesn't keep. Matching the words matters more
+      // than saving a page load.
+
+      // Don't bounce back and forth if the patient has already been moved once.
+      if (this.justResumed) return;
+
+      // Carry whatever has been gathered so far, so the form is already filled in when
+      // the page opens rather than the patient being asked everything a second time.
+      const fillArgs = this.knownFor(page);
+      const hasSomething = Object.values(fillArgs).some((v) => v !== undefined && v !== "");
+
+      this.stash(hasSomething ? {
+        tool: page === "contact" ? "fill_contact_form" : "fill_booking_form",
+        args: fillArgs,
+      } : null);
+      setTimeout(() => { window.location.assign(path); }, 900);
+    },
+
+    // Go to the page a form lives on, carrying the values so they land once it loads.
+    navigateAndFill(page, tool, args) {
+      const pages = {{ navigable_pages | tojson }};
+      const path = pages[page];
+      if (!path) return { ok: false, message: "I can't open that page." };
+
+      // Same reasoning as ensurePageFor: don't reopen a form over the confirmation page.
+      if (this.booked) {
+        return {
+          ok: false,
+          message: "The appointment is already booked and the patient is looking at the "
+            + "confirmation. Don't open the form again unless they ask for another appointment.",
+        };
+      }
+
+      // Already standing on the right page, so the form hasn't rendered yet rather than
+      // being missing — Alpine initialises components in document order and the model can
+      // call this within a few hundred milliseconds of the page load. Navigating again
+      // would reload the page we are already on and throw the values away; waiting for the
+      // form to appear is what the patient actually asked for. This is the case that used
+      // to fail: asked to open the booking page and fill it in, the assistant navigated and
+      // then quietly did nothing.
+      const here = window.location.pathname.replace(/\/$/, "");
+      if (here === path.replace(/\/$/, "")) {
+        return this.fillWhenReady(page, tool, args);
+      }
+
+      // We just came from a navigation and the form still isn't here, so going again would
+      // loop. Fall back to the tool that doesn't need the page.
+      if (this.justResumed) {
+        return {
+          ok: false,
+          message: page === "booking"
+            ? "The form isn't available — book it for the patient instead."
+            : "The form isn't available — send the message for the patient instead.",
+        };
+      }
+
+      this.stash({ tool: tool, args: args });
+      setTimeout(() => { window.location.assign(path); }, 900);
+      return {
+        ok: true,
+        message: "Opening that page and filling it in — tell the patient where they're going.",
+      };
+    },
+
+    // Wait for a form that is on its way in. The page is already the right one, so this is
+    // purely a rendering race: poll briefly, fill as soon as it appears, and give up quietly
+    // rather than leaving the model waiting on a promise that never resolves.
+    fillWhenReady(page, tool, args) {
+      const selector = page === "contact"
+        ? 'form[action*="contact"]'
+        : 'form[action*="book-appointment"]';
+
+      const deadline = Date.now() + 4000;
+      const attempt = () => {
+        if (document.querySelector(selector)) {
+          // The form is here now, so the normal path applies and will find it.
+          if (tool === "fill_contact_form") this.fillContactForm(args);
+          else this.fillBookingForm(args);
+          return;
+        }
+        if (Date.now() < deadline) setTimeout(attempt, 200);
+      };
+      setTimeout(attempt, 200);
+
+      // Answer the model straight away rather than holding the tool call open for seconds —
+      // it should keep talking to the patient while the fields land behind it.
+      return {
+        ok: true,
+        message: "Filling the form in now — tell the patient their details are going in, "
+          + "then read them back and finish the booking once they agree.",
+      };
+    },
+
+    stash(pendingFill) {
+      // A turn still being transcribed would be lost across the page load, and after a
+      // booking that is exactly the sentence worth keeping — the summary is mid-flight when
+      // the navigation fires, and only reaches turns[] on turnComplete. Flush whatever has
+      // arrived so the log doesn't end on the patient's last question.
+      if (this.pendingUser) { this.addTurn("user", this.pendingUser.trim()); this.pendingUser = ""; }
+      if (this.pendingAssistant) { this.addTurn("assistant", this.pendingAssistant.trim()); this.pendingAssistant = ""; }
+
+      try {
+        sessionStorage.setItem("voiceAssistantResume", JSON.stringify({
+          at: Date.now(),
+          turns: this.turns.slice(-12),
+          fill: pendingFill || null,
+          known: this.known || {},
+          booked: this.booked || false,
+        }));
+      } catch (e) { /* private mode — the call just won't resume */ }
+    },
+
+    // Only resume a conversation we left moments ago: anything older is a patient who
+    // wandered back later, and reopening a live microphone on them would be wrong.
+    resumeIfPending() {
+      let saved = null;
+      try {
+        const raw = sessionStorage.getItem("voiceAssistantResume");
+        sessionStorage.removeItem("voiceAssistantResume");
+        if (raw) saved = JSON.parse(raw);
+      } catch (e) { console.warn("[voice] resume unreadable:", e); return; }
+
+      if (!saved) { console.log("[voice] no stashed conversation on this page load"); return; }
+      const age = Date.now() - saved.at;
+      if (age > 20000) {
+        console.warn(`[voice] stash too old (${age}ms) — starting fresh, language may change`);
+        return;
+      }
+      console.log(`[voice] resuming: ${(saved.turns || []).length} turns, age ${age}ms`);
+
+      this.turns = saved.turns || [];
+      this.known = saved.known || {};
+      this.booked = saved.booked || false;
+      this.open = true;
+      // Guards navigateAndFill against bouncing between pages if the form never appears.
+      this.justResumed = true;
+
+      // Apply a form fill that was requested from another page. The form is in the DOM
+      // now, so this is the same code path as if the patient had been here all along.
+      if (saved.fill && saved.fill.tool) {
+        // Alpine initialises components in document order and the booking form's own
+        // component may not be ready yet, so let the current tick finish first.
+        this.$nextTick(() => {
+          setTimeout(() => {
+            if (saved.fill.tool === "fill_booking_form") this.fillBookingForm(saved.fill.args || {});
+            else if (saved.fill.tool === "fill_contact_form") this.fillContactForm(saved.fill.args || {});
+          }, 250);
+        });
+      }
+
+      this.start();
+    },
+
+    // --- Form filling -------------------------------------------------------------
+    // The booking form's date, time and gender live in sr-only inputs bound with x-model
+    // to the appointmentScheduler component. Writing .value on those does NOT update
+    // Alpine, so the visible calendar and time buttons would stay put while the hidden
+    // field silently changed. Drive the component's own state instead.
+
+    setNative(el, value) {
+      if (!el || value === undefined || value === null || value === "") return false;
+      el.value = value;
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+      this.flashField(el);
+      return true;
+    },
+
+    flashField(el) {
+      if (!el) return;
+      el.classList.add("ring-2", "ring-secondary", "ring-offset-2", "dark:ring-offset-slate-800");
+      setTimeout(() => {
+        el.classList.remove("ring-2", "ring-secondary", "ring-offset-2", "dark:ring-offset-slate-800");
+      }, 1600);
+    },
+
+    selectByLabel(select, text) {
+      if (!select || !text) return false;
+      const needle = String(text).trim().toLowerCase();
+      const option = [...select.options].find((o) => o.text.trim().toLowerCase() === needle)
+        || [...select.options].find((o) => o.value && o.text.trim().toLowerCase().includes(needle));
+      if (!option) return false;
+      select.value = option.value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      this.flashField(select);
+      return true;
+    },
+
+    fillBookingForm(args) {
+      const form = document.querySelector('form[action*="book-appointment"]');
+      if (!form) {
+        // Not on the booking page. Rather than making the model notice and call
+        // navigate_to_page itself — which it does inconsistently, and skips altogether in
+        // some languages while still telling the patient it opened the page — go there and
+        // carry the values over. The fill happens on arrival.
+        return this.navigateAndFill("booking", "fill_booking_form", args);
+      }
+
+      const filled = [];
+      if (this.setNative(form.querySelector('input[name="full_name"]'), args.full_name)) filled.push("name");
+      if (this.setNative(form.querySelector('input[name="email"]'), args.email)) filled.push("email");
+      if (this.setNative(form.querySelector('input[name="phone"]'), args.phone)) filled.push("phone");
+      if (this.setNative(form.querySelector('textarea[name="notes"]'), args.notes)) filled.push("notes");
+      if (this.selectByLabel(form.querySelector('select[name="service"]'), args.service_name)) filled.push("service");
+      if (args.doctor_name && this.selectByLabel(form.querySelector('select[name="doctor"]'), args.doctor_name)) filled.push("doctor");
+
+      // Reach into the Alpine component so the visible controls actually move.
+      const scope = (window.Alpine && Alpine.$data) ? Alpine.$data(form) : null;
+      if (scope) {
+        if (args.date) { scope.selectedDate = args.date; filled.push("date"); }
+        if (args.gender) { scope.selectedGender = args.gender; filled.push("gender"); }
+        if (args.time) {
+          // Availability reloads when the date changes, so let that settle before
+          // choosing a slot — otherwise the pick can be cleared as newly unavailable.
+          setTimeout(() => { scope.selectedTime = args.time; }, 400);
+          filled.push("time");
+        }
+      } else {
+        // Alpine missing entirely: fall back so the data still reaches the server.
+        if (this.setNative(form.querySelector('input[name="preferred_date"]'), args.date)) filled.push("date");
+        if (this.setNative(form.querySelector('select[name="preferred_time"]'), args.time)) filled.push("time");
+        if (this.setNative(form.querySelector('select[name="gender"]'), args.gender)) filled.push("gender");
+      }
+
+      if (!filled.length) return { ok: false, message: "Nothing was filled in. Ask for the details again." };
+
+      form.scrollIntoView({ behavior: "smooth", block: "center" });
+      return {
+        ok: true,
+        message: `Filled in: ${filled.join(", ")}. The patient can see it on screen. Read the details `
+          + `back to them, and once they agree call book_appointment to finish it — don't ask them to `
+          + `press the button.`,
+      };
+    },
+
+    fillContactForm(args) {
+      const form = document.querySelector('form[action*="contact"]')
+        || document.querySelector('input[name="hp_field"]')?.closest("form");
+      if (!form) {
+        return this.navigateAndFill("contact", "fill_contact_form", args);
+      }
+
+      const filled = [];
+      if (this.setNative(form.querySelector('input[name="name"]'), args.name)) filled.push("name");
+      if (this.setNative(form.querySelector('input[name="email"]'), args.email)) filled.push("email");
+      if (this.setNative(form.querySelector('input[name="phone"]'), args.phone)) filled.push("phone");
+      if (this.setNative(form.querySelector('input[name="subject"]'), args.subject)) filled.push("subject");
+      if (this.setNative(form.querySelector('textarea[name="message"]'), args.message)) filled.push("message");
+
+      if (!filled.length) return { ok: false, message: "Nothing was filled in. Ask for the details again." };
+
+      form.scrollIntoView({ behavior: "smooth", block: "center" });
+      return {
+        ok: true,
+        message: `Filled in: ${filled.join(", ")}. Read it back to them, and once they agree call `
+          + `submit_contact_form to send it — don't ask them to press Send.`,
+      };
+    },
+  };
+}
+</script>
+{% endif %}
