@@ -71,8 +71,8 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
 
   // Inside a .stagger container, children cascade rather than landing together. The cap
   // stops a long grid (say 12 blog cards) from leaving the last item a second behind.
-  const STEP_MS = 80;
-  const MAX_DELAY_MS = 480;
+  const STEP_MS = 140;
+  const MAX_DELAY_MS = 700;
   document.querySelectorAll(".stagger").forEach((group) => {
     [...group.children].forEach((child, i) => {
       if (child.classList.contains("reveal")) {
@@ -88,7 +88,9 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.15 });
+    // The bottom inset holds the trigger until the element is properly on screen,
+    // so the reveal plays where the user is looking instead of finishing off-view.
+  }, { threshold: 0.15, rootMargin: "0px 0px -80px 0px" });
   items.forEach((el) => observer.observe(el));
 })();
 

@@ -2,15 +2,67 @@
 
 html { scroll-behavior: smooth; }
 
-::selection { background-color: #0B74D1; color: #fff; }
+::selection { background-color: #0078AA; color: #fff; }
 
 .section-eyebrow {
   letter-spacing: 0.08em;
 }
 
+/* Shared easing: a gentle overshoot-free ease-out so hovers glide in and settle
+   rather than snapping. Hover-off is slightly quicker than hover-on, which is what
+   makes an interaction feel responsive without feeling abrupt. */
+:root {
+  --ease-glide: cubic-bezier(.16, 1, .3, 1);
+  --dur-hover-in: .55s;
+  --dur-hover-out: .4s;
+}
+
 /* Card hover lift */
-.hover-lift { transition: transform .35s ease, box-shadow .35s ease; }
-.hover-lift:hover { transform: translateY(-6px); }
+.hover-lift { transition: transform var(--dur-hover-out) var(--ease-glide), box-shadow var(--dur-hover-out) ease; }
+.hover-lift:hover {
+  transition-duration: var(--dur-hover-in);
+  transform: translateY(-8px);
+  box-shadow: 0 22px 45px -22px rgba(0, 120, 170, .45);
+}
+
+/* Zoom-on-hover for media. The wrapper clips; the inner img scales. */
+.zoom-wrap { overflow: hidden; }
+.zoom-img { transition: transform .9s var(--ease-glide); will-change: transform; }
+.group:hover .zoom-img,
+.zoom-wrap:hover .zoom-img { transform: scale(1.08); }
+
+/* Card that lifts AND zooms on hover. Scale is the noticeable part, so it stays
+   subtle — past ~1.03 the text inside visibly resamples and looks blurry. */
+.card-pop {
+  transition: transform var(--dur-hover-out) var(--ease-glide), box-shadow var(--dur-hover-out) ease;
+  will-change: transform;
+}
+.card-pop:hover {
+  transition-duration: var(--dur-hover-in);
+  transform: translateY(-10px) scale(1.025);
+  box-shadow: 0 30px 60px -25px rgba(0, 120, 170, .45);
+}
+
+/* Icon tiles that pop and rotate slightly on hover */
+.icon-pop { transition: transform var(--dur-hover-out) var(--ease-glide); }
+.group:hover .icon-pop {
+  transition: transform .6s cubic-bezier(.34, 1.4, .5, 1);
+  transform: scale(1.15) rotate(-6deg);
+}
+
+/* Slow drift for decorative background blobs on the aqua band */
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(0, -28px, 0) scale(1.06); }
+}
+.drift { animation: drift 16s ease-in-out infinite; }
+.drift-slow { animation: drift 24s ease-in-out infinite reverse; }
+
+/* Underline that sweeps in on hover — for card titles */
+.sweep-underline { background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat; background-position: 0 100%; background-size: 0 2px;
+  transition: background-size .4s cubic-bezier(.22,1,.36,1); }
+.group:hover .sweep-underline { background-size: 100% 2px; }
 
 /* Glassmorphism utility */
 .glass {
@@ -36,8 +88,11 @@ img.lazy-fade.loaded {
 /* Simple fade-in-on-scroll utility, toggled via IntersectionObserver in main.js */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .7s ease, transform .7s ease;
+  transform: translateY(32px);
+  /* Opacity finishes ahead of the travel so the element is readable while it is
+     still settling — that is what reads as "swift" rather than sluggish. */
+  transition: opacity .7s ease-out, transform 1s var(--ease-glide);
+  will-change: opacity, transform;
 }
 .reveal.in-view {
   opacity: 1;
@@ -95,7 +150,7 @@ img.lazy-fade.loaded {
   bottom: -4px;
   height: 2px;
   width: 100%;
-  background-color: #0B74D1;
+  background-color: #0078AA;
   transform: scaleX(0);
   transform-origin: left;
   transition: transform .3s ease;
@@ -103,6 +158,18 @@ img.lazy-fade.loaded {
 .link-underline:hover::after,
 .link-underline[aria-current="page"]::after {
   transform: scaleX(1);
+}
+
+/* Home-page navbar while it floats over the hero photo. The hero is a bright image, so a
+   light frosted panel (rather than a dark scrim) keeps the original dark text readable and
+   blends into the white page behind it — no hard edge where the bar ends. */
+.nav-over-hero {
+  background-color: rgba(255, 255, 255, .72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.dark .nav-over-hero {
+  background-color: rgba(15, 23, 42, .6);
 }
 
 /* Accessibility: honour the OS "reduce motion" preference. Content stays fully visible —
@@ -121,7 +188,14 @@ img.lazy-fade.loaded {
   }
   .stagger > .reveal { transition-delay: 0ms; }
 
-  .hover-lift:hover { transform: none; }
+  .hover-lift:hover,
+  .card-pop:hover { transform: none; box-shadow: none; }
+  .group:hover .zoom-img,
+  .zoom-wrap:hover .zoom-img,
+  .group:hover .icon-pop { transform: none; }
+  .group:hover .sweep-underline { background-size: 0 2px; }
+  .zoom-img, .card-pop, .icon-pop, .sweep-underline { transition: none; }
+  .drift, .drift-slow { animation: none; }
   .link-underline::after { transition: none; }
 
   *, *::before, *::after {
@@ -138,7 +212,7 @@ img.lazy-fade.loaded {
 
 /* Focus visibility for accessibility */
 a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-  outline: 2px solid #14B8A6;
+  outline: 2px solid #3CE2AD;
   outline-offset: 2px;
 }
 
@@ -167,6 +241,6 @@ select.form-select option {
 }
 select.form-select option:checked,
 select.form-select option:hover {
-  background-color: #0B74D1;
+  background-color: #0078AA;
   color: #ffffff;
 }

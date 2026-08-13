@@ -31,16 +31,18 @@
     theme: {
       extend: {
         colors: {
-          primary: { DEFAULT: '#0B74D1', 50: '#EAF3FC', 100: '#D0E5F8', 200: '#A1CBF1', 300: '#72B1EA', 400: '#4397E3', 500: '#0B74D1', 600: '#095EA8', 700: '#07477F', 800: '#053056', 900: '#02182D' },
-          secondary: { DEFAULT: '#14B8A6', 50: '#E7FAF8', 100: '#C6F3EE', 200: '#8EE7DD', 300: '#56DBCC', 400: '#2CC9B7', 500: '#14B8A6', 600: '#109385', 700: '#0C6E64', 800: '#084A43', 900: '#042521' },
+          primary: { DEFAULT: '#0078AA', 50: '#E6F5FA', 100: '#C2E7F2', 200: '#8ACFE4', 300: '#4FB4D3', 400: '#1F95BE', 500: '#0078AA', 600: '#00618B', 700: '#004A6A', 800: '#003449', 900: '#001E2A' },
+          secondary: { DEFAULT: '#3CE2AD', 50: '#ECFDF7', 100: '#D2FAEC', 200: '#A5F3D8', 300: '#78EBC5', 400: '#3CE2AD', 500: '#22C795', 600: '#17A177', 700: '#117A5A', 800: '#0B523C', 900: '#062B1F' },
+          aqua: { 50: '#F2FFFE', 100: '#E2FFFA', 200: '#D4FDFE', 300: '#B9F7F9', 400: '#8FEFF3', 500: '#5FE3E9' },
         },
         fontFamily: {
           heading: ['Poppins', 'sans-serif'],
           body: ['Inter', 'sans-serif'],
         },
         boxShadow: {
-          soft: '0 10px 40px -10px rgba(11, 116, 209, 0.15)',
+          soft: '0 10px 40px -10px rgba(0, 120, 170, 0.15)',
           card: '0 4px 24px -4px rgba(15, 23, 42, 0.08)',
+          panel: '0 18px 50px -20px rgba(0, 120, 170, 0.25)',
         },
         animation: {
           'fade-up': 'fadeUp 0.6s ease-out forwards',
@@ -55,6 +57,9 @@
   };
 </script>
 
+<!-- Alpine plugins must be registered before the core bundle runs. x-collapse powers the FAQ
+     and About accordions; without it Alpine ignores the directive and panels snap open. -->
+<script src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% block extra_head %}{% endblock %}
@@ -69,6 +74,7 @@
 </main>
 
 {% include "partials/footer.html" %}
+{% include "partials/side_rail.html" %}
 {% include "partials/whatsapp_button.html" %}
 {% include "partials/back_to_top.html" %}
 

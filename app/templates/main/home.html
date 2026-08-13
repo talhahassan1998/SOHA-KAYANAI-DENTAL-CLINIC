@@ -1,34 +1,55 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import service_card, doctor_card, testimonial_card, faq_item, stat_counter %}
+{% from "partials/macros.html" import service_card, doctor_card, testimonial_card, faq_item, stat_counter, about_accordion %}
 {% from "partials/appointment_form.html" import render_appointment_form with context %}
 
 {% block title %}{{ clinic_name }} — Your Smile, Our Priority{% endblock %}
 
+{# Lets the navbar float transparently over the full-bleed hero photo below. #}
+{% set transparent_nav = true %}
+
 {% block content %}
 
-<!-- Hero -->
-<section class="relative overflow-hidden bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-20 lg:pt-20 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
-    <div class="reveal">
+<!-- Hero: copy on the left, full-bleed photo filling the right edge.
+     The negative top margin cancels the sticky navbar's own height (h-16 / lg:h-20) so the
+     photo still runs to the very top of the page and the bar floats over it. -->
+<section class="relative bg-white dark:bg-slate-900 overflow-hidden -mt-16 lg:-mt-20">
+  <!-- Photo bleeds to the right edge with no frame. On mobile it sits behind the copy under a scrim. -->
+  <div class="absolute inset-y-0 right-0 w-full lg:w-[58%]">
+    <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1400&q=80&auto=format&fit=crop"
+         alt="Smiling patient in a bright modern dental clinic" class="w-full h-full object-cover object-center">
+    <div class="absolute inset-0 bg-white/90 dark:bg-slate-900/90 lg:hidden"></div>
+    <div class="hidden lg:block absolute inset-y-0 left-0 w-72 bg-gradient-to-r from-white via-white/70 dark:from-slate-900 dark:via-slate-900/70 to-transparent"></div>
+  </div>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="lg:w-[46%] pt-32 pb-24 lg:pt-52 lg:pb-40 reveal">
       <span class="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-primary bg-primary-50 dark:bg-primary-900/40 px-4 py-1.5 rounded-full section-eyebrow">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-3.5 h-3.5"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
         Trusted Since 2014
       </span>
-      <h1 class="mt-6 font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-wide text-slate-900 dark:text-white">
-        Your Smile,<br><span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Our Priority</span>
+      <h1 class="mt-6 font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] text-slate-800 dark:text-white">
+        Your Smile,<br>Our Priority
       </h1>
-      <p class="mt-6 text-slate-500 dark:text-slate-400 text-lg max-w-lg">
+      <p class="mt-5 text-xs sm:text-sm tracking-[0.15em] uppercase text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
         Advanced dental care with experienced specialists — digital diagnostics, gentle technique, and honest guidance from your first visit.
       </p>
-      <div class="mt-8 flex flex-wrap items-center gap-4">
-        <a href="{{ url_for('appointments.book') }}" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold px-7 py-3.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
-          Book Appointment
+
+      <!-- Three round mint quick-links, as in the reference -->
+      <div class="mt-9 flex items-center gap-4">
+        <a href="{{ url_for('services.list_services') }}" aria-label="Browse our services"
+           class="w-14 h-14 rounded-full bg-secondary hover:bg-secondary-500 text-white grid place-items-center shadow-soft transition-all duration-300 hover:-translate-y-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M20.8 8.6a4.9 4.9 0 0 0-8.8-2.8 4.9 4.9 0 0 0-8.8 2.8c0 5 8.8 10.4 8.8 10.4s8.8-5.4 8.8-10.4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.5 12.5h4l1.5-2.5 2 4 1.5-3 1 1.5h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-        <a href="https://wa.me/{{ clinic_whatsapp_number }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 border border-slate-200 dark:border-slate-700 hover:border-secondary text-slate-700 dark:text-slate-200 font-semibold px-7 py-3.5 rounded-full transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-[#25D366]"><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.3c1.4.8 3.1 1.3 4.8 1.3 5.5 0 10-4.5 10-10S17.5 2 12 2Zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-3-1.3-4.9-4.3-5.1-4.5-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1.1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .5 0 .7.5.3.7.9 2.2 1 2.4.1.2.1.4 0 .6-.1.2-.2.3-.3.5-.2.2-.3.3-.5.5-.2.2-.4.4-.2.7.2.3 1 1.6 2.1 2.6 1.4 1.3 2.6 1.7 3 1.9.3.1.5.1.7-.1.2-.2.8-.9 1-1.2.2-.3.4-.3.7-.2.3.1 1.8.9 2.1 1 .3.2.5.2.6.4.1.1.1.7-.1 1.2Z"/></svg>
-          WhatsApp Us
+        <a href="{{ url_for('appointments.book') }}" aria-label="Book an appointment"
+           class="w-14 h-14 rounded-full bg-secondary hover:bg-secondary-500 text-white grid place-items-center shadow-soft transition-all duration-300 hover:-translate-y-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><rect x="2.5" y="7" width="19" height="12.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 10.5v5M9.5 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </a>
+        <a href="{{ url_for('doctors.list_doctors') }}" aria-label="Meet our doctors"
+           class="w-14 h-14 rounded-full bg-secondary hover:bg-secondary-500 text-white grid place-items-center shadow-soft transition-all duration-300 hover:-translate-y-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M6 3v5a4 4 0 0 0 8 0V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 12v3a4 4 0 0 0 8 0v-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="11" r="2.2" stroke="currentColor" stroke-width="1.6"/></svg>
         </a>
       </div>
+
       <div class="mt-10 flex items-center gap-4">
         <div class="flex -space-x-3">
           <img class="w-9 h-9 rounded-full border-2 border-white dark:border-slate-900 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80&auto=format&fit=crop" alt="Patient">
@@ -43,15 +64,55 @@
         </div>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="reveal relative">
-      <div class="relative rounded-[2rem] overflow-hidden shadow-soft aspect-[4/5] max-w-md mx-auto animate-float">
-        <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=900&q=80&auto=format&fit=crop" alt="Smiling patient in a modern dental chair" loading="lazy" class="w-full h-full object-cover">
+<!-- Three info panels straddling the hero's bottom edge -->
+<section class="relative z-10 -mt-12 lg:-mt-16 mb-20">
+  {# All three panels share one class list and h-full so the row stays flush top and bottom.
+     Buttons are pinned with mt-auto rather than flex-1 body copy, matching service_card. #}
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 stagger grid md:grid-cols-3 gap-6 items-start">
+
+    <div class="reveal group h-full flex flex-col rounded-2xl p-8 lg:p-10 card-pop bg-white dark:bg-slate-800 shadow-card ring-1 ring-slate-900/5 dark:ring-white/10">
+      <div class="w-12 h-12 rounded-xl bg-aqua-200 dark:bg-slate-700 text-primary dark:text-primary-300 grid place-items-center icon-pop">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
       </div>
-      <div class="glass absolute -bottom-6 left-1/2 -translate-x-1/2 lg:left-auto lg:right-4 lg:translate-x-0 rounded-2xl px-5 py-4 shadow-soft">
-        <p class="text-2xl font-heading font-extrabold text-primary">98.7%</p>
-        <p class="text-xs text-slate-500 dark:text-slate-300 whitespace-nowrap">Highest patient satisfaction</p>
+      <h3 class="mt-5 font-heading text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-white min-h-[2.5rem]">Emergency Service</h3>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+        Same-day emergency slots reserved daily, plus a 24/7 on-call dentist.
+      </p>
+      <p class="mt-4 font-heading text-lg font-semibold text-primary dark:text-primary-300">{{ clinic_phone }}</p>
+      <a href="tel:{{ clinic_phone }}" class="mt-auto pt-5 self-start">
+        <span class="inline-block bg-primary hover:bg-primary-600 text-white text-sm font-bold px-7 py-3 rounded-full shadow-card transition-transform hover:-translate-y-0.5">Call Now</span>
+      </a>
+    </div>
+
+    <div class="reveal group h-full flex flex-col rounded-2xl p-8 lg:p-10 card-pop bg-white dark:bg-slate-800 shadow-card ring-1 ring-slate-900/5 dark:ring-white/10">
+      <div class="w-12 h-12 rounded-xl bg-aqua-200 dark:bg-slate-700 text-primary dark:text-primary-300 grid place-items-center icon-pop">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </div>
+      <h3 class="mt-5 font-heading text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-white min-h-[2.5rem]">Do You Want To Make An Appointment</h3>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+        Choose your treatment, preferred dentist and a time that suits you. We'll confirm by email within business hours.
+      </p>
+      <a href="{{ url_for('appointments.book') }}" class="mt-auto pt-7 self-start">
+        <span class="inline-block bg-primary hover:bg-primary-600 text-white text-sm font-bold px-7 py-3 rounded-full shadow-card transition-transform hover:-translate-y-0.5">Book Now</span>
+      </a>
+    </div>
+
+    <div class="reveal group h-full flex flex-col rounded-2xl p-8 lg:p-10 card-pop bg-white dark:bg-slate-800 shadow-card ring-1 ring-slate-900/5 dark:ring-white/10">
+      <div class="w-12 h-12 rounded-xl bg-aqua-200 dark:bg-slate-700 text-primary dark:text-primary-300 grid place-items-center icon-pop">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5.2l3.2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h3 class="mt-5 font-heading text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-white min-h-[2.5rem]">Opening Hours</h3>
+      <ul class="mt-1 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+        <li class="flex justify-between gap-4"><span>Monday – Friday</span><span class="font-semibold text-slate-800 dark:text-white">9:00 AM – 7:00 PM</span></li>
+        <li class="flex justify-between gap-4"><span>Saturday</span><span class="font-semibold text-slate-800 dark:text-white">9:00 AM – 4:30 PM</span></li>
+        <li class="flex justify-between gap-4"><span>Sunday</span><span class="font-semibold text-slate-800 dark:text-white">Emergency only</span></li>
+      </ul>
+      <a href="{{ url_for('main.contact') }}" class="mt-auto pt-7 self-start">
+        <span class="inline-block bg-primary hover:bg-primary-600 text-white text-sm font-bold px-7 py-3 rounded-full shadow-card transition-transform hover:-translate-y-0.5">Contact Us</span>
+      </a>
     </div>
   </div>
 </section>
@@ -63,22 +124,57 @@
   </div>
 </section>
 
-<!-- About / services intro -->
+<!-- About: image left, copy + accordion right -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-  <div class="text-center max-w-2xl mx-auto reveal">
-    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">What We Do</span>
-    <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Complete dental care under one roof</h2>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">From routine prevention to full-scale reconstruction, every treatment is planned digitally and delivered by a specialist in that field.</p>
-  </div>
+  <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+    <div class="reveal group zoom-wrap rounded-lg">
+      <img src="{{ url_for('static', filename='images/hero-dental-care.jpg') }}"
+           alt="Dentist at {{ clinic_name }} treating a patient in the clinic"
+           loading="lazy" class="lazy-fade zoom-img w-full h-auto object-cover rounded-lg">
+    </div>
 
-  <div class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    {% for service in featured_services %}{{ service_card(service) }}{% endfor %}
+    <div class="reveal">
+      <h2 class="font-heading text-3xl md:text-4xl text-slate-800 dark:text-white">
+        <span class="font-bold">About</span> <span class="font-normal text-slate-500 dark:text-slate-400">{{ clinic_name }}</span>
+      </h2>
+      <p class="mt-4 text-xs font-semibold tracking-[0.15em] uppercase text-primary section-eyebrow">Professional Care</p>
+      <p class="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed">
+        From routine prevention to full-scale reconstruction, every treatment is planned digitally and delivered by a specialist in that field.
+      </p>
+
+      <div class="mt-8 space-y-3">
+        {% for service in featured_services[:3] %}
+          {{ about_accordion(service.name, service.short_description, loop.index0) }}
+        {% endfor %}
+      </div>
+    </div>
   </div>
-  <div class="text-center mt-10">
-    <a href="{{ url_for('services.list_services') }}" class="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-600">
-      View All Services
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </a>
+</section>
+
+<!-- Services on the aqua band, in one floating white card -->
+<section class="relative overflow-hidden bg-gradient-to-br from-aqua-100 via-aqua-200 to-aqua-100 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 py-24">
+  <!-- Soft background shapes, pure CSS -->
+  <div aria-hidden="true" class="drift absolute -left-1/4 top-1/4 w-[45rem] h-[45rem] rounded-full bg-white/40 dark:bg-white/5 blur-3xl"></div>
+  <div aria-hidden="true" class="drift-slow absolute -right-32 -top-32 w-[38rem] h-[38rem] rotate-12 bg-aqua-50/60 dark:bg-white/5"></div>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto reveal">
+      <h2 class="font-heading text-3xl md:text-4xl font-bold text-slate-800 dark:text-white">Complete dental care under one roof</h2>
+      <p class="mt-3 text-xs font-semibold tracking-[0.15em] uppercase text-primary section-eyebrow">What We Do</p>
+    </div>
+
+    <div class="reveal mt-14 bg-white dark:bg-slate-800 rounded-lg shadow-panel p-10 lg:p-16">
+      <div class="stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-14">
+        {% for service in featured_services[:6] %}{{ service_card(service) }}{% endfor %}
+      </div>
+    </div>
+
+    <div class="text-center mt-12">
+      <a href="{{ url_for('services.list_services') }}" class="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-600">
+        View All Services
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -101,11 +197,11 @@
         ("siren", "Emergency Dental Care", "Same-day emergency slots reserved daily, plus a 24/7 on-call dentist."),
       ] %}
       {% for icon, title, desc in reasons %}
-      <div class="reveal glass rounded-2xl p-6 hover-lift">
-        <div class="w-11 h-11 rounded-xl bg-secondary/10 text-secondary grid place-items-center mb-4">
+      <div class="reveal group glass rounded-lg p-6 card-pop flex flex-col">
+        <div class="w-11 h-11 rounded-xl bg-secondary/10 text-secondary grid place-items-center mb-4 icon-pop shrink-0 transition-colors group-hover:bg-secondary group-hover:text-white">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
         </div>
-        <h3 class="font-heading font-semibold text-slate-900 dark:text-white mb-2">{{ title }}</h3>
+        <h3 class="font-heading font-semibold text-slate-900 dark:text-white mb-2 min-h-[3rem] flex items-start">{{ title }}</h3>
         <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ desc }}</p>
       </div>
       {% endfor %}
@@ -158,8 +254,8 @@
   <div x-data="{ open: false, activeImg: '', activeCaption: '' }" class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for img in gallery_images %}
     <button type="button" @click="open = true; activeImg = '{{ img.after_image_url or img.before_image_url }}'; activeCaption = '{{ img.caption }}'"
-            class="reveal group relative rounded-2xl overflow-hidden shadow-card hover-lift text-left">
-      <img src="{{ img.after_image_url or img.before_image_url }}" alt="{{ img.title }}" loading="lazy" class="lazy-fade w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500">
+            class="reveal group zoom-wrap relative rounded-lg shadow-card card-pop text-left">
+      <img src="{{ img.after_image_url or img.before_image_url }}" alt="{{ img.title }}" loading="lazy" class="lazy-fade zoom-img w-full h-60 object-cover">
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent"></div>
       <div class="absolute bottom-0 left-0 right-0 p-4">
         <p class="text-white font-heading font-semibold text-sm">{{ img.title }}</p>
