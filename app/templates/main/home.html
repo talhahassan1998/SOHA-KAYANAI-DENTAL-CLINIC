@@ -15,49 +15,58 @@
 <section class="relative bg-white dark:bg-slate-900 overflow-hidden -mt-16 lg:-mt-20">
   <!-- Photo bleeds to the right edge with no frame. On mobile it sits behind the copy under a scrim. -->
   <div class="absolute inset-y-0 right-0 w-full lg:w-[58%]">
-    <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1400&q=80&auto=format&fit=crop"
-         alt="Smiling patient in a bright modern dental clinic" class="w-full h-full object-cover object-center">
+    {# ponytail: uses the clinic's own photo. It is a treatment shot rather than a smiling
+       face, which is weaker for a hero — replace with clinic photography of a smiling
+       patient when it exists. object-top keeps the clinician, not the floor, in frame. #}
+    <img src="{{ url_for('static', filename='images/hero-dental-care.jpg') }}"
+         alt="Treatment underway at {{ clinic_name }}" class="w-full h-full object-cover object-top">
     <div class="absolute inset-0 bg-white/90 dark:bg-slate-900/90 lg:hidden"></div>
-    <div class="hidden lg:block absolute inset-y-0 left-0 w-72 bg-gradient-to-r from-white via-white/70 dark:from-slate-900 dark:via-slate-900/70 to-transparent"></div>
+    {# Wider, two-stop fade so the photo dissolves into the page instead of ending on a hard
+       vertical seam. Needs to clear the headline, hence w-96 rather than w-72. #}
+    <div class="hidden lg:block absolute inset-y-0 left-0 w-96 bg-gradient-to-r from-white via-white/85 dark:from-slate-900 dark:via-slate-900/85 to-transparent"></div>
+    <div class="hidden lg:block absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white dark:from-slate-900 to-transparent"></div>
   </div>
 
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="lg:w-[46%] pt-32 pb-24 lg:pt-52 lg:pb-40 reveal">
-      <span class="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-primary bg-primary-50 dark:bg-primary-900/40 px-4 py-1.5 rounded-full section-eyebrow">
+      <span class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.22em] uppercase text-gold-600 dark:text-gold-300 bg-gold-50 dark:bg-gold-900/30 frame-gold px-4 py-1.5 rounded-full">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-3.5 h-3.5"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
-        Trusted Since 2014
+        Trusted in Islamabad Since 2014
       </span>
-      <h1 class="mt-6 font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] text-slate-800 dark:text-white">
-        Your Smile,<br>Our Priority
+      <h1 class="mt-6 font-display text-5xl sm:text-6xl lg:text-7xl font-semibold leading-[1.05] tracking-tight text-slate-900 dark:text-white">
+        Your Smile,<br><span class="italic text-primary dark:text-gold-300">Our Priority</span>
       </h1>
-      <p class="mt-5 text-xs sm:text-sm tracking-[0.15em] uppercase text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
+      <hr class="rule-gold w-24 mt-7">
+      <p class="mt-6 text-sm sm:text-[15px] text-slate-600 dark:text-slate-300 max-w-md leading-relaxed">
         Advanced dental care with experienced specialists — digital diagnostics, gentle technique, and honest guidance from your first visit.
       </p>
 
-      <!-- Three round mint quick-links, as in the reference -->
-      <div class="mt-9 flex items-center gap-4">
-        <a href="{{ url_for('services.list_services') }}" aria-label="Browse our services"
-           class="w-14 h-14 rounded-full bg-secondary hover:bg-secondary-500 text-white grid place-items-center shadow-soft transition-all duration-300 hover:-translate-y-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M20.8 8.6a4.9 4.9 0 0 0-8.8-2.8 4.9 4.9 0 0 0-8.8 2.8c0 5 8.8 10.4 8.8 10.4s8.8-5.4 8.8-10.4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.5 12.5h4l1.5-2.5 2 4 1.5-3 1 1.5h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      {# Two explicit CTAs beat three unlabelled icons. WhatsApp sits alongside the booking
+         button because it is how most patients here actually make first contact. #}
+      <div class="mt-9 flex flex-wrap items-center gap-3">
+        <a href="{{ url_for('appointments.book') }}"
+           class="inline-flex items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold text-sm px-7 py-3.5 rounded-full shadow-soft transition-all duration-300 hover:-translate-y-0.5 whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4.5 h-4.5"><rect x="2.5" y="7" width="19" height="12.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 10.5v5M9.5 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          Book Appointment
         </a>
-        <a href="{{ url_for('appointments.book') }}" aria-label="Book an appointment"
-           class="w-14 h-14 rounded-full bg-secondary hover:bg-secondary-500 text-white grid place-items-center shadow-soft transition-all duration-300 hover:-translate-y-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><rect x="2.5" y="7" width="19" height="12.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 10.5v5M9.5 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        </a>
-        <a href="{{ url_for('doctors.list_doctors') }}" aria-label="Meet our doctors"
-           class="w-14 h-14 rounded-full bg-secondary hover:bg-secondary-500 text-white grid place-items-center shadow-soft transition-all duration-300 hover:-translate-y-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M6 3v5a4 4 0 0 0 8 0V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 12v3a4 4 0 0 0 8 0v-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="11" r="2.2" stroke="currentColor" stroke-width="1.6"/></svg>
+        <a href="https://wa.me/{{ clinic_whatsapp_number }}?text={{ 'Assalam o Alaikum, I would like to book a dental appointment at ' ~ clinic_name ~ '.' | urlencode }}"
+           target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-2 bg-white dark:bg-slate-800 frame-gold text-slate-800 dark:text-white font-semibold text-sm px-7 py-3.5 rounded-full shadow-card transition-all duration-300 hover:-translate-y-0.5 whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4.5 h-4.5 text-[#25D366]"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 2.1.55 4.06 1.6 5.8L2 22l4.42-1.68a9.9 9.9 0 0 0 5.62 1.72h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2Zm5.8 14.12c-.24.68-1.4 1.3-1.94 1.34-.5.04-.96.22-3.23-.67-2.72-1.07-4.44-3.83-4.57-4.01-.13-.18-1.09-1.45-1.09-2.76 0-1.31.69-1.96.93-2.22.24-.27.53-.33.7-.33h.5c.16 0 .38-.06.59.45.24.58.81 2 .88 2.14.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.35-.42.47-.14.14-.28.29-.12.57.16.27.72 1.19 1.55 1.93 1.07.95 1.97 1.25 2.25 1.39.27.14.43.12.59-.07.16-.18.68-.79.86-1.07.18-.27.36-.22.61-.13.24.09 1.55.73 1.82.87.27.13.45.2.51.31.07.11.07.63-.17 1.31Z"/></svg>
+          WhatsApp Us
         </a>
       </div>
 
+      {# Real patient faces come from the testimonials table rather than stock avatars,
+         so the social proof matches the people quoted further down the page. #}
       <div class="mt-10 flex items-center gap-4">
         <div class="flex -space-x-3">
-          <img class="w-9 h-9 rounded-full border-2 border-white dark:border-slate-900 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80&auto=format&fit=crop" alt="Patient">
-          <img class="w-9 h-9 rounded-full border-2 border-white dark:border-slate-900 object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80&auto=format&fit=crop" alt="Patient">
-          <img class="w-9 h-9 rounded-full border-2 border-white dark:border-slate-900 object-cover" src="https://images.unsplash.com/photo-1489980557514-251d61e3eeb6?w=100&q=80&auto=format&fit=crop" alt="Patient">
+          {% for t in testimonials[:3] %}
+          <img class="w-9 h-9 rounded-full border-2 border-white dark:border-slate-900 object-cover" src="{{ t.patient_photo_url }}" alt="{{ t.patient_name }}" loading="lazy">
+          {% endfor %}
         </div>
         <div>
-          <div class="flex text-secondary">
+          <div class="flex text-gold-500">
             {% for i in range(5) %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.1 6.5L12 17.3l-5.8 3.2 1.1-6.5-4.8-4.6 6.6-.9L12 2.5Z"/></svg>{% endfor %}
           </div>
           <p class="text-xs text-slate-500 dark:text-slate-400">Rated 4.9/5 by 2,400+ patients</p>
@@ -127,17 +136,19 @@
 <!-- About: image left, copy + accordion right -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-    <div class="reveal group zoom-wrap rounded-lg">
-      <img src="{{ url_for('static', filename='images/hero-dental-care.jpg') }}"
-           alt="Dentist at {{ clinic_name }} treating a patient in the clinic"
-           loading="lazy" class="lazy-fade zoom-img w-full h-auto object-cover rounded-lg">
+    {# Uses the founder's portrait rather than the hero shot, which now fills the hero itself. #}
+    <div class="reveal group zoom-wrap rounded-2xl shadow-panel">
+      <img src="{{ featured_doctors[0].photo_url if featured_doctors else url_for('static', filename='images/hero-dental-care.jpg') }}"
+           alt="{{ featured_doctors[0].name if featured_doctors else clinic_name }}"
+           loading="lazy" class="lazy-fade zoom-img w-full h-auto object-cover rounded-2xl">
     </div>
 
     <div class="reveal">
-      <h2 class="font-heading text-3xl md:text-4xl text-slate-800 dark:text-white">
-        <span class="font-bold">About</span> <span class="font-normal text-slate-500 dark:text-slate-400">{{ clinic_name }}</span>
+      <p class="mb-4 text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Professional Care</p>
+      <h2 class="font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white leading-tight">
+        About <span class="italic text-primary dark:text-gold-300">{{ clinic_name }}</span>
       </h2>
-      <p class="mt-4 text-xs font-semibold tracking-[0.15em] uppercase text-primary section-eyebrow">Professional Care</p>
+      <hr class="rule-gold w-24 mt-6">
       <p class="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed">
         From routine prevention to full-scale reconstruction, every treatment is planned digitally and delivered by a specialist in that field.
       </p>
@@ -159,11 +170,11 @@
 
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto reveal">
-      <h2 class="font-heading text-3xl md:text-4xl font-bold text-slate-800 dark:text-white">Complete dental care under one roof</h2>
-      <p class="mt-3 text-xs font-semibold tracking-[0.15em] uppercase text-primary section-eyebrow">What We Do</p>
+      <p class="mb-4 text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule justify-center">What We Do</p>
+      <h2 class="font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Complete dental care under one roof</h2>
     </div>
 
-    <div class="reveal mt-14 bg-white dark:bg-slate-800 rounded-lg shadow-panel p-10 lg:p-16">
+    <div class="reveal mt-14 bg-white dark:bg-slate-800 rounded-3xl shadow-panel frame-gold p-10 lg:p-16">
       <div class="stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-14">
         {% for service in featured_services[:6] %}{{ service_card(service) }}{% endfor %}
       </div>
@@ -182,26 +193,28 @@
 <section class="bg-gradient-to-b from-primary-50 to-white dark:from-slate-800 dark:to-slate-900 py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto reveal">
-      <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Why Choose Us</span>
-      <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Reasons patients keep coming back</h2>
+      <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Why Choose Us</span>
+      <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Reasons patients keep coming back</h2>
       <p class="mt-4 text-slate-500 dark:text-slate-400">Clinical excellence matters, but so does how you feel in the chair. We deliver both.</p>
     </div>
 
     <div class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {# Each reason carries its own SVG path — previously every card fell through to the
+         same shield icon regardless of which one was named. #}
       {% set reasons = [
-        ("shield", "Experienced Dentists", "Board-certified specialists with a combined 100+ years of clinical practice."),
-        ("scan", "Digital X-Rays", "Up to 90% less radiation with instant, high-resolution diagnostic imaging."),
-        ("heart", "Pain-Free Treatment", "Computer-controlled anaesthesia and sedation options for anxious patients."),
-        ("sparkle", "Sterilized Equipment", "Hospital-grade autoclave sterilization audited after every single procedure."),
-        ("wallet", "Affordable Pricing", "Transparent quotes, insurance support and interest-free payment plans."),
-        ("siren", "Emergency Dental Care", "Same-day emergency slots reserved daily, plus a 24/7 on-call dentist."),
+        ("M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z", "Experienced Dentists", "Pakistani and UK-trained specialists with a combined 100+ years of clinical practice."),
+        ("M4 7V5a1 1 0 0 1 1-1h2M20 7V5a1 1 0 0 0-1-1h-2M4 17v2a1 1 0 0 0 1 1h2M20 17v2a1 1 0 0 1-1 1h-2M3 12h18", "Digital X-Rays", "Up to 90% less radiation with instant, high-resolution diagnostic imaging on site."),
+        ("M12 20s-7-4.5-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 2.5C19 15.5 12 20 12 20Z", "Pain-Free Treatment", "Computer-controlled anaesthesia and sedation options for anxious patients."),
+        ("M12 3l1.8 4.4 4.7.4-3.6 3.1 1.1 4.6L12 13l-4 2.5 1.1-4.6L5.5 7.8l4.7-.4L12 3Z", "Sterilized Equipment", "Hospital-grade autoclave sterilization audited after every single procedure."),
+        ("M3 8.5A2.5 2.5 0 0 1 5.5 6H18a2 2 0 0 1 2 2v1M3 8.5V17a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-2M21 11v4h-4a2 2 0 0 1 0-4h4Z", "Transparent Pricing", "Clear quotes in PKR before treatment begins, with interest-free instalment plans."),
+        ("M12 8v5M12 16.5v.5M10.3 3.9 2.6 17.4A1.6 1.6 0 0 0 4 20h16a1.6 1.6 0 0 0 1.4-2.6L13.7 3.9a1.6 1.6 0 0 0-2.8 0Z", "Emergency Dental Care", "Same-day emergency slots reserved daily, plus a 24/7 on-call dentist."),
       ] %}
-      {% for icon, title, desc in reasons %}
-      <div class="reveal group glass rounded-lg p-6 card-pop flex flex-col">
-        <div class="w-11 h-11 rounded-xl bg-secondary/10 text-secondary grid place-items-center mb-4 icon-pop shrink-0 transition-colors group-hover:bg-secondary group-hover:text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      {% for path, title, desc in reasons %}
+      <div class="reveal group glass gilt-edge rounded-2xl p-7 card-pop flex flex-col">
+        <div class="w-11 h-11 rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-gold-300 grid place-items-center mb-4 icon-pop shrink-0 transition-colors group-hover:bg-primary group-hover:text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="{{ path }}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <h3 class="font-heading font-semibold text-slate-900 dark:text-white mb-2 min-h-[3rem] flex items-start">{{ title }}</h3>
+        <h3 class="font-display font-semibold text-lg text-slate-900 dark:text-white mb-2 min-h-[3rem] flex items-start">{{ title }}</h3>
         <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ desc }}</p>
       </div>
       {% endfor %}
@@ -212,8 +225,8 @@
 <!-- Doctors -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   <div class="text-center max-w-2xl mx-auto reveal">
-    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Meet Our Doctors</span>
-    <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Specialists who treat what they teach</h2>
+    <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Meet Our Doctors</span>
+    <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Specialists who treat what they teach</h2>
     <p class="mt-4 text-slate-500 dark:text-slate-400">Each of our clinicians focuses on a single discipline — so you are always seen by an expert, not a generalist.</p>
   </div>
   <div class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -225,8 +238,8 @@
 <section class="bg-primary-50 dark:bg-slate-800/60 py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto reveal">
-      <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Patient Stories</span>
-      <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">15,000 smiles and counting</h2>
+      <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Patient Stories</span>
+      <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">15,000 smiles and counting</h2>
       <p class="mt-4 text-slate-500 dark:text-slate-400">Real words from real patients treated at {{ clinic_name }}.</p>
     </div>
     <div x-data="{ page: 0, total: {{ testimonials|length }} }" class="mt-12">
@@ -246,8 +259,8 @@
 <!-- Gallery -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   <div class="text-center max-w-2xl mx-auto reveal">
-    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Gallery</span>
-    <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Smile transformations</h2>
+    <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Gallery</span>
+    <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Smile transformations</h2>
     <p class="mt-4 text-slate-500 dark:text-slate-400">A selection of recent work from our cosmetic and restorative team.</p>
   </div>
 
@@ -288,10 +301,30 @@
 <section id="book" class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 py-20">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="reveal text-center max-w-2xl mx-auto">
-      <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Book Online</span>
-      <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Reserve your appointment in under a minute</h2>
+      <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Book Online</span>
+      <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Reserve your appointment in under a minute</h2>
       <p class="mt-4 text-slate-500 dark:text-slate-400">Choose your treatment, preferred dentist and a time that suits you. We'll confirm by email within business hours.</p>
     </div>
+
+    {# Indicative PKR bands. Deliberately copy, not data: Service has no price column, and
+       adding one needs a model change + migration. Ranges, not exact figures, so the page
+       never contradicts a quote given in the chair. #}
+    <div class="reveal mt-10 grid sm:grid-cols-3 gap-4">
+      {% set price_bands = [
+        ("Consultation & check-up", "2,000", "3,500"),
+        ("Scaling & polishing", "5,000", "9,000"),
+        ("Teeth whitening", "18,000", "35,000"),
+      ] %}
+      {% for label, low, high in price_bands %}
+      <div class="bg-white dark:bg-slate-800 frame-gold rounded-2xl px-5 py-4 text-center shadow-card">
+        <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">{{ label }}</p>
+        <p class="mt-2 font-display tnum text-xl font-semibold text-primary dark:text-gold-300">Rs {{ low }} – {{ high }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="reveal mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
+      Indicative ranges in PKR. Your exact quote is confirmed after examination — interest-free instalments available.
+    </p>
 
     <div class="reveal mt-10 bg-white dark:bg-slate-800 rounded-3xl shadow-soft p-6 sm:p-10 border border-slate-100 dark:border-slate-700">
       {{ render_appointment_form(appt_form, url_for('appointments.book')) }}
@@ -311,7 +344,7 @@
         <span class="font-semibold text-red-600 dark:text-red-400 sm:block sm:mt-1">Emergency care only</span>
       </div>
     </div>
-    <p class="reveal mt-4 text-center text-xs text-slate-400 dark:text-slate-500">Closed for a break from 1:00 – 2:00 PM.</p>
+    <p class="reveal mt-4 text-center text-xs text-slate-400 dark:text-slate-500">Closed for a break from 1:00 – 2:00 PM, and for Jummah prayers on Fridays from 1:00 – 2:30 PM.</p>
     <p class="reveal mt-4 text-center text-sm text-slate-500 dark:text-slate-400">Dental emergency? Call <a href="tel:{{ clinic_phone }}" class="text-primary font-semibold">{{ clinic_phone }}</a></p>
   </div>
 </section>
@@ -319,8 +352,8 @@
 <!-- FAQs -->
 <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   <div class="text-center reveal">
-    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">FAQs</span>
-    <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Frequently asked questions</h2>
+    <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">FAQs</span>
+    <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Frequently asked questions</h2>
   </div>
   <div class="mt-10 space-y-4">
     {% for faq in faqs %}{{ faq_item(faq, loop.index0) }}{% endfor %}

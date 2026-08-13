@@ -2,10 +2,23 @@
 
 html { scroll-behavior: smooth; }
 
-::selection { background-color: #0078AA; color: #fff; }
+::selection { background-color: var(--brand-primary); color: #fff; }
 
+/* Eyebrow labels: wide tracking + a short brass rule is the cheapest premium cue there is. */
 .section-eyebrow {
-  letter-spacing: 0.08em;
+  letter-spacing: 0.22em;
+}
+.section-eyebrow-rule {
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  letter-spacing: 0.22em;
+}
+.section-eyebrow-rule::before {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--brand-gold));
 }
 
 /* Shared easing: a gentle overshoot-free ease-out so hovers glide in and settle
@@ -15,6 +28,15 @@ html { scroll-behavior: smooth; }
   --ease-glide: cubic-bezier(.16, 1, .3, 1);
   --dur-hover-in: .55s;
   --dur-hover-out: .4s;
+
+  /* Brand hexes live here so the Tailwind config in base.html and this file cannot
+     drift apart. Keep in sync with tailwind.config colors.primary / .gold / .secondary. */
+  --brand-primary: #0A5F7A;
+  --brand-gold: #C9A227;
+  /* gold-600 — the lightest brass that clears WCAG AA on white at body size (5.04:1).
+     Use this, never --brand-gold, for gold text on light backgrounds. */
+  --brand-gold-ink: #8A6A22;
+  --brand-secondary: #3CE2AD;
 }
 
 /* Card hover lift */
@@ -22,7 +44,7 @@ html { scroll-behavior: smooth; }
 .hover-lift:hover {
   transition-duration: var(--dur-hover-in);
   transform: translateY(-8px);
-  box-shadow: 0 22px 45px -22px rgba(0, 120, 170, .45);
+  box-shadow: 0 34px 70px -30px rgba(10, 95, 122, .40);
 }
 
 /* Zoom-on-hover for media. The wrapper clips; the inner img scales. */
@@ -40,7 +62,7 @@ html { scroll-behavior: smooth; }
 .card-pop:hover {
   transition-duration: var(--dur-hover-in);
   transform: translateY(-10px) scale(1.025);
-  box-shadow: 0 30px 60px -25px rgba(0, 120, 170, .45);
+  box-shadow: 0 40px 90px -35px rgba(10, 95, 122, .42);
 }
 
 /* Icon tiles that pop and rotate slightly on hover */
@@ -66,15 +88,59 @@ html { scroll-behavior: smooth; }
 
 /* Glassmorphism utility */
 .glass {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 .dark .glass {
   background: rgba(15, 23, 42, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+/* ---- Premium accents -------------------------------------------------------
+   A thin brass line, a gilt top edge, and a slow sheen. Used sparingly: the
+   luxury read comes from restraint, so these are hairlines and highlights
+   rather than fills. */
+
+/* Hairline divider that fades out at both ends. */
+.rule-gold {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--brand-gold), transparent);
+  opacity: .55;
+}
+
+/* Card with a brass top edge that brightens on hover. */
+.gilt-edge { position: relative; }
+.gilt-edge::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--brand-gold), transparent);
+  opacity: 0;
+  transition: opacity var(--dur-hover-out) ease;
+}
+.gilt-edge:hover::before,
+.group:hover .gilt-edge::before { opacity: .9; transition-duration: var(--dur-hover-in); }
+
+/* Static brass frame for panels that should read as "featured". */
+.frame-gold {
+  border: 1px solid rgba(201, 162, 39, .28);
+}
+.dark .frame-gold { border-color: rgba(201, 162, 39, .22); }
+
+/* Slow sheen across a headline or badge. Pair with .animate-shimmer. */
+.sheen {
+  background-image: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.65) 45%, transparent 70%);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+}
+
+/* Numerals in stat counters and prices: tabular so they stop jittering mid-count. */
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
 /* Loading skeleton shimmer for lazy images */
 img.lazy-fade {
@@ -150,7 +216,7 @@ img.lazy-fade.loaded {
   bottom: -4px;
   height: 2px;
   width: 100%;
-  background-color: #0078AA;
+  background-color: var(--brand-primary);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform .3s ease;
@@ -198,6 +264,11 @@ img.lazy-fade.loaded {
   .drift, .drift-slow { animation: none; }
   .link-underline::after { transition: none; }
 
+  /* Premium accents: keep the brass edge visible but stop it animating, and drop
+     the sheen sweep entirely (a moving highlight is exactly what reduce-motion is for). */
+  .gilt-edge::before { transition: none; opacity: .9; }
+  .sheen { background-image: none; animation: none; }
+
   *, *::before, *::after {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
@@ -212,7 +283,7 @@ img.lazy-fade.loaded {
 
 /* Focus visibility for accessibility */
 a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-  outline: 2px solid #3CE2AD;
+  outline: 2px solid var(--brand-secondary);
   outline-offset: 2px;
 }
 
@@ -241,6 +312,6 @@ select.form-select option {
 }
 select.form-select option:checked,
 select.form-select option:hover {
-  background-color: #0078AA;
+  background-color: var(--brand-primary);
   color: #ffffff;
 }

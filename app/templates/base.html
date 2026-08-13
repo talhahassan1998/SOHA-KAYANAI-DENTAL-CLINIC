@@ -22,7 +22,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -31,26 +31,46 @@
     theme: {
       extend: {
         colors: {
-          primary: { DEFAULT: '#0078AA', 50: '#E6F5FA', 100: '#C2E7F2', 200: '#8ACFE4', 300: '#4FB4D3', 400: '#1F95BE', 500: '#0078AA', 600: '#00618B', 700: '#004A6A', 800: '#003449', 900: '#001E2A' },
+          // Deep teal. Darker and less cyan than the old #0078AA so large fills read as
+          // considered rather than clinical, and so white text clears AA from 600 up.
+          primary: { DEFAULT: '#0A5F7A', 50: '#F0F7F9', 100: '#D8ECF1', 200: '#AED6E0', 300: '#7BB8C8', 400: '#4593AB', 500: '#0A5F7A', 600: '#084C62', 700: '#063A4B', 800: '#042835', 900: '#02171F' },
           secondary: { DEFAULT: '#3CE2AD', 50: '#ECFDF7', 100: '#D2FAEC', 200: '#A5F3D8', 300: '#78EBC5', 400: '#3CE2AD', 500: '#22C795', 600: '#17A177', 700: '#117A5A', 800: '#0B523C', 900: '#062B1F' },
-          aqua: { 50: '#F2FFFE', 100: '#E2FFFA', 200: '#D4FDFE', 300: '#B9F7F9', 400: '#8FEFF3', 500: '#5FE3E9' },
+          // Warm porcelain, replacing the old bright cyan ramp. Bright cyan fought the
+          // deep teal + brass palette and read clinical; a warm off-white lets the
+          // accents carry the page. Kept under the `aqua` name so the existing
+          // aqua-50/100/200 usages across the templates keep working.
+          aqua: { 50: '#FCFBF8', 100: '#F7F4ED', 200: '#EFEAE0', 300: '#E3DCCD', 400: '#CFC5B0', 500: '#B3A88E' },
+          // Brass accent for premium signalling — hairlines, small caps, icon strokes.
+          // 600 (#8A6A22) is the lightest step that clears WCAG AA on white at body size;
+          // anything lighter is reserved for borders and large display type only.
+          gold: { DEFAULT: '#C9A227', 50: '#FBF7EA', 100: '#F5EDCF', 200: '#EBDCA0', 300: '#DFC76A', 400: '#D4B546', 500: '#C9A227', 600: '#8A6A22', 700: '#6B521B', 800: '#4A3813', 900: '#2A200B' },
+          ink: { DEFAULT: '#0F1B22', 700: '#24343D', 500: '#4A5C66' },
         },
         fontFamily: {
+          // Serif display over sans body — the single strongest premium cue available
+          // without commissioning a typeface.
+          display: ['Fraunces', 'Georgia', 'serif'],
           heading: ['Poppins', 'sans-serif'],
           body: ['Inter', 'sans-serif'],
         },
+        letterSpacing: { luxe: '0.22em' },
         boxShadow: {
-          soft: '0 10px 40px -10px rgba(0, 120, 170, 0.15)',
-          card: '0 4px 24px -4px rgba(15, 23, 42, 0.08)',
-          panel: '0 18px 50px -20px rgba(0, 120, 170, 0.25)',
+          // Larger, softer, lower-opacity casts. Premium depth reads as a wide ambient
+          // shadow, not a tight dark one.
+          soft: '0 18px 60px -18px rgba(10, 95, 122, 0.18)',
+          card: '0 2px 8px -2px rgba(15, 23, 42, 0.04), 0 12px 40px -12px rgba(15, 23, 42, 0.10)',
+          panel: '0 32px 80px -32px rgba(10, 95, 122, 0.30), 0 4px 16px -6px rgba(15, 23, 42, 0.06)',
+          lift: '0 40px 90px -35px rgba(10, 95, 122, 0.42)',
         },
         animation: {
           'fade-up': 'fadeUp 0.6s ease-out forwards',
           'float': 'float 6s ease-in-out infinite',
+          'shimmer': 'shimmer 2.8s linear infinite',
         },
         keyframes: {
           fadeUp: { '0%': { opacity: 0, transform: 'translateY(20px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
           float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-12px)' } },
+          shimmer: { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
         },
       },
     },
