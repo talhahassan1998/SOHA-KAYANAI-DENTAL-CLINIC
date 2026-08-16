@@ -2,19 +2,19 @@
 {% block title %}Gallery — {{ clinic_name }}{% endblock %}
 
 {% block content %}
-<section class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:to-slate-800 py-16 lg:py-20">
+<section class="bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-primary-900 dark:to-primary-800 py-16 lg:py-20">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal">
-    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Gallery</span>
-    <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-wide">Smile transformations</h1>
-    <p class="mt-5 text-slate-500 dark:text-slate-400">A selection of recent work from our cosmetic and restorative team.</p>
+    <span class="text-xs font-bold tracking-widest uppercase text-ink-500 section-eyebrow">Gallery</span>
+    <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-light text-primary dark:text-white tracking-tightest">Smile transformations</h1>
+    <p class="mt-5 text-ink-500 dark:text-primary-300">A selection of recent work from our cosmetic and restorative team.</p>
   </div>
 </section>
 
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
   <div class="flex flex-wrap justify-center gap-2 mb-10">
-    <a href="{{ url_for('gallery.index') }}" class="px-4 py-2 rounded-full text-sm font-semibold transition {{ 'bg-primary text-white' if not active_category else 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary-50' }}">All</a>
+    <a href="{{ url_for('gallery.index') }}" class="px-4 py-2 rounded-full text-sm font-semibold transition {{ 'bg-primary text-white' if not active_category else 'bg-primary-100 dark:bg-primary-800 text-ink-500 dark:text-primary-200 hover:bg-primary-50' }}">All</a>
     {% for cat in categories %}
-    <a href="{{ url_for('gallery.index', category=cat) }}" class="px-4 py-2 rounded-full text-sm font-semibold capitalize transition {{ 'bg-primary text-white' if active_category == cat else 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary-50' }}">{{ cat.replace('-', ' ') }}</a>
+    <a href="{{ url_for('gallery.index', category=cat) }}" class="px-4 py-2 rounded-full text-sm font-semibold capitalize transition {{ 'bg-primary text-white' if active_category == cat else 'bg-primary-100 dark:bg-primary-800 text-ink-500 dark:text-primary-200 hover:bg-primary-50' }}">{{ cat.replace('-', ' ') }}</a>
     {% endfor %}
   </div>
 
@@ -30,7 +30,7 @@
       </div>
     </button>
     {% else %}
-    <p class="text-slate-500 col-span-full text-center py-12">No gallery images in this category yet.</p>
+    <p class="text-ink-500 col-span-full text-center py-12">No gallery images in this category yet.</p>
     {% endfor %}
 
     <div x-show="open" x-cloak x-transition.opacity @keydown.escape.window="open = false"

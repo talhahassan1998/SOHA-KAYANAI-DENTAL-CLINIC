@@ -3,37 +3,37 @@
 
 {% block content %}
 <section class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-  <div class="w-20 h-20 rounded-full bg-secondary-50 dark:bg-secondary-900/40 text-secondary grid place-items-center mx-auto mb-6">
+  <div class="w-20 h-20 rounded-full bg-primary-50 dark:bg-secondary-900/40 text-ink-500 grid place-items-center mx-auto mb-6">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-10 h-10"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </div>
 
   {% if state == "confirmed" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Appointment Confirmed</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s appointment has been marked as confirmed and a confirmation email has been sent to {{ appointment.email }}.</p>
+    <h1 class="font-heading text-3xl font-light text-primary dark:text-white tracking-tightest">Appointment Confirmed</h1>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">{{ appointment.full_name }}'s appointment has been marked as confirmed and a confirmation email has been sent to {{ appointment.email }}.</p>
   {% elif state == "already_confirmed" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Already Confirmed</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s appointment was already confirmed. No new email was sent.</p>
+    <h1 class="font-heading text-3xl font-light text-primary dark:text-white tracking-tightest">Already Confirmed</h1>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">{{ appointment.full_name }}'s appointment was already confirmed. No new email was sent.</p>
   {% elif state == "cancelled" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Appointment Cancelled</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s request has been cancelled, the time slot is free again, and a notification email has been sent to {{ appointment.email }}.</p>
+    <h1 class="font-heading text-3xl font-light text-primary dark:text-white tracking-tightest">Appointment Cancelled</h1>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">{{ appointment.full_name }}'s request has been cancelled, the time slot is free again, and a notification email has been sent to {{ appointment.email }}.</p>
   {% elif state == "already_cancelled" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Already Cancelled</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s request was already cancelled. No new email was sent.</p>
+    <h1 class="font-heading text-3xl font-light text-primary dark:text-white tracking-tightest">Already Cancelled</h1>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">{{ appointment.full_name }}'s request was already cancelled. No new email was sent.</p>
   {% elif state == "was_cancelled" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">This Request Was Cancelled</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">{{ appointment.full_name }}'s request was cancelled, so it can't be confirmed. Please contact the patient directly to rebook.</p>
+    <h1 class="font-heading text-3xl font-light text-primary dark:text-white tracking-tightest">This Request Was Cancelled</h1>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">{{ appointment.full_name }}'s request was cancelled, so it can't be confirmed. Please contact the patient directly to rebook.</p>
   {% elif state == "expired" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Link Expired</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">This confirmation link has expired. Please confirm the appointment directly in the database or contact the patient another way.</p>
+    <h1 class="font-heading text-3xl font-light text-primary dark:text-white tracking-tightest">Link Expired</h1>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">This confirmation link has expired. Please confirm the appointment directly in the database or contact the patient another way.</p>
   {% elif state == "not_found" %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Appointment Not Found</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">This appointment no longer exists.</p>
+    <h1 class="font-heading text-3xl font-light text-primary dark:text-white tracking-tightest">Appointment Not Found</h1>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">This appointment no longer exists.</p>
   {% else %}
-    <h1 class="font-heading text-3xl font-bold text-slate-900 dark:text-white tracking-wide">Invalid Link</h1>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">This confirmation link is not valid.</p>
+    <h1 class="font-heading text-3xl font-light text-primary dark:text-white tracking-tightest">Invalid Link</h1>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">This confirmation link is not valid.</p>
   {% endif %}
 
-  <a href="{{ url_for('main.home') }}" class="inline-flex mt-10 items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold px-7 py-3.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
+  <a href="{{ url_for('main.home') }}" class="inline-flex mt-10 items-center gap-2 bg-primary hover:bg-primary-700 text-white font-semibold px-7 py-3.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
     Back to Home
   </a>
 </section>

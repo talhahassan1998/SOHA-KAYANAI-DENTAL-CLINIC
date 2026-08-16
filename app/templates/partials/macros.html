@@ -31,21 +31,22 @@
 {%- endmacro %}
 
 {% macro service_card(service) -%}
-<div class="reveal group flex flex-col h-full">
-  {# The icon sits over an oversized ghosted copy of itself, as in the reference design. #}
+{# Hairline top rule instead of a card border: the reference separates content with rules
+   and tint bands, never with boxes. Without it these read as floating text on white. #}
+<div class="reveal group flex flex-col h-full pt-6 border-t border-primary-200 dark:border-white/15 transition-colors hover:border-primary dark:hover:border-white/40">
   <div class="relative w-12 h-12 mb-6 shrink-0">
-    <div aria-hidden="true" class="absolute inset-0 grid place-items-center text-gold-200/70 dark:text-gold-500/20 scale-[1.9] -translate-y-2 translate-x-2 transition-transform duration-500 group-hover:scale-[2.15] group-hover:rotate-6">
+    <div aria-hidden="true" class="absolute inset-0 grid place-items-center text-primary-200/60 dark:text-white/5 scale-[1.9] -translate-y-2 translate-x-2 transition-transform duration-500 group-hover:scale-[2.15] group-hover:rotate-6">
       {{ service_icon(service.icon_name, 'w-12 h-12') }}
     </div>
-    <div class="relative icon-pop text-primary dark:text-white transition-colors group-hover:text-gold-600 dark:group-hover:text-gold-300">
+    <div class="relative icon-pop text-primary dark:text-white transition-colors">
       {{ service_icon(service.icon_name, 'w-12 h-12') }}
     </div>
   </div>
-  <h3 class="font-display text-xl font-semibold text-slate-900 dark:text-white mb-3 min-h-[3.5rem] flex items-start">
+  <h3 class="font-display text-xl font-normal tracking-tightest text-primary dark:text-white mb-3 min-h-[3.5rem] flex items-start">
     <span class="sweep-underline">{{ service.name }}</span>
   </h3>
-  <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed min-h-[4.5rem]">{{ service.short_description }}</p>
-  <a href="{{ url_for('services.detail', slug=service.slug) }}" class="inline-flex items-center gap-1 mt-auto pt-4 text-sm font-semibold text-primary hover:text-primary-600">
+  <p class="text-sm text-ink-500 dark:text-primary-300 leading-relaxed min-h-[4.5rem]">{{ service.short_description }}</p>
+  <a href="{{ url_for('services.detail', slug=service.slug) }}" class="inline-flex items-center gap-1 mt-auto pt-4 text-sm font-light text-primary hover:text-ink-500">
     Learn More
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1.5"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </a>
@@ -53,21 +54,21 @@
 {%- endmacro %}
 
 {% macro doctor_card(doctor) -%}
-<div class="reveal group gilt-edge flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl overflow-hidden card-pop shadow-card">
-  <div class="zoom-wrap relative aspect-[4/5] bg-slate-100 dark:bg-slate-700">
-    <img src="{{ doctor.photo_url }}" alt="{{ doctor.name }}" loading="lazy" class="lazy-fade zoom-img w-full h-full object-cover">
+<div class="reveal group gilt-edge flex flex-col h-full bg-white dark:bg-primary-800 rounded-2xl overflow-hidden card-pop shadow-card">
+  <div class="zoom-wrap relative aspect-[4/5] bg-primary-100 dark:bg-primary-700">
+    <img src="{{ doctor.photo_url }}" alt="{{ doctor.name }}" loading="lazy" class="lazy-fade zoom-img portrait-mono w-full h-full object-cover">
     {# Scrim fades in on hover so the photo edge reads as intentional, not flat. #}
     <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-primary-900/55 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
   </div>
   <div class="p-6 text-center flex flex-col flex-1">
-    <h3 class="font-display font-semibold text-lg text-slate-900 dark:text-white min-h-[3rem] flex items-center justify-center">{{ doctor.name }}</h3>
-    <p class="text-[11px] text-gold-600 dark:text-gold-300 font-semibold tracking-[0.12em] uppercase mt-1 min-h-[2rem] flex items-center justify-center">{{ doctor.credentials }}</p>
+    <h3 class="font-display font-normal tracking-tightest text-lg text-primary dark:text-white min-h-[3rem] flex items-center justify-center">{{ doctor.name }}</h3>
+    <p class="text-[11px] text-ink-500 dark:text-primary-300 font-light tracking-[0.16em] uppercase mt-1 min-h-[2rem] flex items-center justify-center">{{ doctor.credentials }}</p>
     <hr class="rule-gold w-12 mx-auto my-3">
-    <p class="text-xs text-slate-500 dark:text-slate-400 min-h-[2.5rem]">
+    <p class="text-xs text-ink-500 dark:text-primary-300 min-h-[2.5rem]">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-3.5 h-3.5 shrink-0 inline-block align-text-top mr-1"><path d="M12 21s-7-6.5-7-11.5A7 7 0 0 1 19 9.5C19 14.5 12 21 12 21Z" stroke="currentColor" stroke-width="1.6"/></svg>{{ doctor.specialty }} &middot; {{ doctor.years_experience }}+ years
     </p>
     <div class="mt-auto pt-5">
-      <a href="{{ url_for('appointments.book') }}?doctor={{ doctor.id }}" class="inline-block w-full text-center bg-primary text-white font-semibold text-sm py-3 rounded-full hover:bg-primary-600 transition-colors">
+      <a href="{{ url_for('appointments.book') }}?doctor={{ doctor.id }}" class="btn-pill w-full justify-center">
         Book Consultation
       </a>
     </div>
@@ -76,7 +77,7 @@
 {%- endmacro %}
 
 {% macro star_rating(rating) -%}
-<div class="flex items-center gap-0.5 text-gold-500">
+<div class="flex items-center gap-0.5 text-ink-500">
   {% for i in range(5) %}
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4" fill="{{ 'currentColor' if i < rating else 'none' }}" stroke="currentColor" stroke-width="1.4">
       <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.1 6.5L12 17.3l-5.8 3.2 1.1-6.5-4.8-4.6 6.6-.9L12 2.5Z" stroke-linejoin="round"/>
@@ -86,29 +87,29 @@
 {%- endmacro %}
 
 {% macro testimonial_card(t) -%}
-<div class="reveal group bg-white dark:bg-slate-800 frame-gold rounded-2xl p-8 h-full flex flex-col card-pop shadow-card">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-9 h-9 text-gold-300 dark:text-gold-400/60 mb-3 icon-pop"><path d="M7 8c-2.2 0-4 1.8-4 4v4h5v-4H6c0-1.1.9-2 2-2V8Zm10 0c-2.2 0-4 1.8-4 4v4h5v-4h-2c0-1.1.9-2 2-2V8Z"/></svg>
+<div class="reveal group bg-white dark:bg-primary-800 frame-gold rounded-2xl p-8 h-full flex flex-col card-pop shadow-card">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-9 h-9 text-ink-500 dark:text-primary-300/60 mb-3 icon-pop"><path d="M7 8c-2.2 0-4 1.8-4 4v4h5v-4H6c0-1.1.9-2 2-2V8Zm10 0c-2.2 0-4 1.8-4 4v4h5v-4h-2c0-1.1.9-2 2-2V8Z"/></svg>
   {{ star_rating(t.rating) }}
-  <p class="font-display text-[15px] text-slate-700 dark:text-slate-200 leading-relaxed my-4 flex-1">&ldquo;{{ t.quote }}&rdquo;</p>
-  <div class="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+  <p class="font-display text-[15px] text-ink-700 dark:text-primary-100 leading-relaxed my-4 flex-1">&ldquo;{{ t.quote }}&rdquo;</p>
+  <div class="flex items-center gap-3 pt-4 border-t border-primary-200/60 dark:border-white/15">
     <span class="zoom-wrap w-10 h-10 rounded-full shrink-0 block">
-      <img src="{{ t.patient_photo_url }}" alt="{{ t.patient_name }}" loading="lazy" class="lazy-fade zoom-img w-10 h-10 rounded-full object-cover">
+      <img src="{{ t.patient_photo_url }}" alt="{{ t.patient_name }}" loading="lazy" class="lazy-fade zoom-img portrait-mono w-10 h-10 rounded-full object-cover">
     </span>
     <div>
-      <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ t.patient_name }}</p>
-      <p class="text-xs text-slate-400">{{ t.treatment }}</p>
+      <p class="text-sm font-semibold text-primary dark:text-white">{{ t.patient_name }}</p>
+      <p class="text-xs text-primary-400">{{ t.treatment }}</p>
     </div>
   </div>
 </div>
 {%- endmacro %}
 
 {% macro faq_item(faq, index) -%}
-<div x-data="{ open: {{ 'true' if index == 0 else 'false' }} }" class="reveal border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-white dark:bg-slate-800">
+<div x-data="{ open: {{ 'true' if index == 0 else 'false' }} }" class="reveal border border-primary-200 dark:border-white/15 rounded-2xl overflow-hidden bg-white dark:bg-primary-800">
   <button @click="open = !open" class="w-full flex items-center justify-between gap-4 px-5 py-4 text-left">
-    <span class="font-display font-semibold text-slate-900 dark:text-white text-[15px] md:text-base">{{ faq.question }}</span>
-    <svg :class="open ? 'rotate-45' : ''" class="w-5 h-5 shrink-0 text-gold-600 dark:text-gold-300 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span class="font-display font-semibold text-primary dark:text-white text-[15px] md:text-base">{{ faq.question }}</span>
+    <svg :class="open ? 'rotate-45' : ''" class="w-5 h-5 shrink-0 text-ink-500 dark:text-primary-300 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
   </button>
-  <div x-show="open" x-collapse x-cloak class="px-5 pb-5 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+  <div x-show="open" x-collapse x-cloak class="px-5 pb-5 text-sm text-ink-500 dark:text-primary-300 leading-relaxed">
     {{ faq.answer }}
   </div>
 </div>
@@ -119,7 +120,7 @@
 {% macro about_accordion(title, body, index) -%}
 <div x-data="{ open: {{ 'true' if index == 0 else 'false' }} }" class="reveal">
   <button @click="open = !open"
-          :class="open ? 'bg-primary text-white' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'"
+          :class="open ? 'bg-primary text-white' : 'bg-primary-50 dark:bg-primary-800 text-ink-700 dark:text-primary-100 hover:bg-primary-100 dark:hover:bg-white/15'"
           class="w-full flex items-center gap-3 px-6 py-4 text-left rounded-xl transition-colors">
     <svg :class="open ? '' : 'rotate-180'" class="w-4 h-4 shrink-0 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
       <path d="M6 15l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -127,7 +128,7 @@
     <span class="font-display font-semibold text-[15px]">{{ title }}</span>
   </button>
   <div x-show="open" x-collapse x-cloak>
-    <p class="px-6 pt-4 pb-2 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ body }}</p>
+    <p class="px-6 pt-4 pb-2 text-sm text-ink-500 dark:text-primary-300 leading-relaxed">{{ body }}</p>
   </div>
 </div>
 {%- endmacro %}
@@ -135,9 +136,9 @@
 {% macro stat_counter(stat) -%}
 <div class="reveal group text-center transition-transform duration-500 hover:-translate-y-1">
   <p class="font-display tnum text-4xl md:text-5xl font-semibold text-primary dark:text-white flex items-center justify-center gap-0.5 transition-transform duration-500 group-hover:scale-110">
-    <span data-counter="{{ stat.value }}">0</span><span class="text-gold-500">{{ stat.suffix }}</span>
+    <span data-counter="{{ stat.value }}">0</span><span class="text-ink-500">{{ stat.suffix }}</span>
   </p>
   <hr class="rule-gold w-10 mx-auto mt-3 mb-2">
-  <p class="text-[11px] md:text-xs text-slate-500 dark:text-slate-400 tracking-[0.14em] uppercase">{{ stat.label }}</p>
+  <p class="text-[11px] md:text-xs text-ink-500 dark:text-primary-300 tracking-[0.14em] uppercase">{{ stat.label }}</p>
 </div>
 {%- endmacro %}

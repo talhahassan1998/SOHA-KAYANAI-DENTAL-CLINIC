@@ -4,7 +4,7 @@
       {% for category, message in messages %}
         <div x-show="show" x-init="setTimeout(() => show = false, 6000)" x-transition
              class="flex items-start gap-3 rounded-xl px-4 py-3 shadow-card border text-sm
-             {% if category == 'success' %} bg-secondary-50 border-secondary-200 text-secondary-800 dark:bg-secondary-900/40 dark:border-secondary-700 dark:text-secondary-100
+             {% if category == 'success' %} bg-primary-50 border-secondary-200 text-secondary-800 dark:bg-secondary-900/40 dark:border-secondary-700 dark:text-secondary-100
              {% elif category == 'error' %} bg-red-50 border-red-200 text-red-800 dark:bg-red-900/40 dark:border-red-700 dark:text-red-100
              {% else %} bg-primary-50 border-primary-200 text-primary-800 dark:bg-primary-900/40 dark:border-primary-700 dark:text-primary-100 {% endif %}">
           <span class="flex-1">{{ message }}</span>

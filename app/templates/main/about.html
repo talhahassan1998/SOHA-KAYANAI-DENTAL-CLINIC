@@ -3,23 +3,23 @@
 {% block title %}About Us — {{ clinic_name }}{% endblock %}
 
 {% block content %}
-<section class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:to-slate-800 py-16 lg:py-24">
+<section class="bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-primary-900 dark:to-primary-800 py-16 lg:py-24">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
     <div class="reveal">
-      <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">About {{ clinic_name }}</span>
-      <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white !leading-[1.2] tracking-wide">
+      <span class="text-xs font-bold tracking-widest uppercase text-ink-500 section-eyebrow">About {{ clinic_name }}</span>
+      <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-light text-primary dark:text-white !leading-[1.2] tracking-tightest">
         A specialist-led studio built around genuinely gentle care
       </h1>
-      <p class="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed">
+      <p class="mt-6 text-ink-500 dark:text-primary-300 leading-relaxed">
         Since 2014, {{ clinic_name }} has grown from a single chair to a full specialist team, united by one belief:
         dentistry works best when it's planned digitally, explained clearly, and delivered without unnecessary discomfort.
         Every clinician on our team focuses on a single discipline, so you're always seen by an expert rather than a generalist.
       </p>
-      <p class="mt-4 text-slate-500 dark:text-slate-400 leading-relaxed">
+      <p class="mt-4 text-ink-500 dark:text-primary-300 leading-relaxed">
         From same-day emergency slots to multi-year smile makeovers, our approach stays the same: transparent pricing,
         evidence-based treatment plans, and a team that treats your time and comfort as seriously as your teeth.
       </p>
-      <a href="{{ url_for('appointments.book') }}" class="inline-flex mt-8 items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold px-7 py-3.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
+      <a href="{{ url_for('appointments.book') }}" class="inline-flex mt-8 items-center gap-2 bg-primary hover:bg-primary-700 text-white font-semibold px-7 py-3.5 rounded-full shadow-soft transition-all hover:-translate-y-0.5">
         Book a Consultation
       </a>
     </div>
@@ -29,7 +29,7 @@
   </div>
 </section>
 
-<section class="bg-primary-50 dark:bg-slate-800/60 border-y border-primary-100 dark:border-slate-700">
+<section class="bg-primary-50 dark:bg-primary-800/60 border-y border-primary-100 dark:border-white/15">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
     {% for stat in [
       {"value": 10, "suffix": "+", "label": "Years Experience"},
@@ -42,8 +42,8 @@
 
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   <div class="text-center max-w-2xl mx-auto reveal">
-    <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Our Values</span>
-    <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">What guides every appointment</h2>
+    <span class="text-xs font-bold tracking-widest uppercase text-ink-500 section-eyebrow">Our Values</span>
+    <h2 class="mt-3 font-heading text-3xl md:text-4xl font-light text-primary dark:text-white">What guides every appointment</h2>
   </div>
   <div class="stagger mt-12 grid sm:grid-cols-3 gap-6">
     {% for title, desc in [
@@ -51,19 +51,19 @@
       ("Radical Transparency", "You'll see your own scans, understand every cost, and never be rushed into a decision."),
       ("Comfort by Design", "From sedation options to calming rooms, comfort is engineered into the visit, not an afterthought."),
     ] %}
-    <div class="reveal bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card border border-slate-100 dark:border-slate-700">
-      <h3 class="font-heading font-semibold text-slate-900 dark:text-white mb-2">{{ title }}</h3>
-      <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ desc }}</p>
+    <div class="reveal bg-white dark:bg-primary-800 rounded-2xl p-6 shadow-card border border-primary-200/60 dark:border-white/15">
+      <h3 class="font-heading font-semibold text-primary dark:text-white mb-2">{{ title }}</h3>
+      <p class="text-sm text-ink-500 dark:text-primary-300 leading-relaxed">{{ desc }}</p>
     </div>
     {% endfor %}
   </div>
 </section>
 
-<section class="bg-gradient-to-b from-primary-50 to-white dark:from-slate-800 dark:to-slate-900 py-20">
+<section class="bg-gradient-to-b from-primary-50 to-white dark:from-primary-800 dark:to-primary-900 py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto reveal">
-      <span class="text-xs font-bold tracking-widest uppercase text-secondary section-eyebrow">Our Team</span>
-      <h2 class="mt-3 font-heading text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Meet the specialists</h2>
+      <span class="text-xs font-bold tracking-widest uppercase text-ink-500 section-eyebrow">Our Team</span>
+      <h2 class="mt-3 font-heading text-3xl md:text-4xl font-light text-primary dark:text-white">Meet the specialists</h2>
     </div>
     <div class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {% for doctor in doctors %}{{ doctor_card(doctor) }}{% endfor %}

@@ -1,7 +1,7 @@
 {# Fixed icon rail pinned to the right edge, mirroring the reference design's quick-action strip.
    Vertically centred so it clears the back-to-top FAB at bottom-right. Desktop only — on small
    screens the same destinations are all reachable from the mobile drawer. #}
-<div class="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col bg-white dark:bg-slate-800 rounded-l-xl shadow-panel overflow-hidden border border-r-0 border-slate-100 dark:border-slate-700">
+<div class="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col bg-white dark:bg-primary-800 rounded-l-xl shadow-panel overflow-hidden border border-r-0 border-primary-200/60 dark:border-white/15">
   {% set rail_links = [
     (url_for('appointments.book'), 'Book an appointment', 'calendar'),
     ('tel:' ~ clinic_phone, 'Call ' ~ clinic_phone, 'phone'),
@@ -12,7 +12,7 @@
   {% for href, label, icon in rail_links %}
   <a href="{{ href }}"
      {% if icon == 'pin' %}target="_blank" rel="noopener noreferrer"{% endif %}
-     class="group relative w-12 h-12 grid place-items-center text-slate-500 dark:text-slate-400 hover:bg-secondary hover:text-white transition-colors"
+     class="group relative w-12 h-12 grid place-items-center text-ink-500 dark:text-primary-300 hover:bg-secondary hover:text-white transition-colors"
      aria-label="{{ label }}">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5">
       {% if icon == 'calendar' %}
@@ -27,7 +27,7 @@
       <path d="M12 21s-7-6.5-7-11.5A7 7 0 0 1 19 9.5C19 14.5 12 21 12 21Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9.5" r="2.3" stroke="currentColor" stroke-width="1.6"/>
       {% endif %}
     </svg>
-    <span class="pointer-events-none absolute right-full mr-2 whitespace-nowrap rounded-md bg-slate-800 dark:bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0">
+    <span class="pointer-events-none absolute right-full mr-2 whitespace-nowrap rounded-md bg-primary-800 dark:bg-primary-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0">
       {{ label }}
     </span>
   </a>

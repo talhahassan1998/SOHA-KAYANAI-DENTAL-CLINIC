@@ -18,13 +18,11 @@
     <!-- Implant render, centred behind the type. The wrapper carries the scroll-linked
          drift (set by main.js); the inner element carries the idle float loop. -->
     <div class="hero-implant-shift pointer-events-none absolute left-1/2 -translate-x-1/2 top-52 lg:top-56 w-[58%] sm:w-[42%] lg:w-[30%] max-w-sm z-0">
-      {# mix-blend-multiply drops the render's white ground onto the page without needing a
-         cutout, but it also eats the crown's own highlights — a soft radial plate behind it
-         restores the white so the crown reads as ceramic rather than translucent. #}
-      <div class="absolute inset-[12%] rounded-full bg-white blur-2xl dark:bg-primary-900"></div>
+      {# Transparent PNG, so it composites cleanly on both the white and the ink ground —
+         no blend mode, which is what put a black plate behind it in dark mode. #}
       <img src="{{ url_for('static', filename='images/hero-implant.png') }}"
            alt="Dental implant with ceramic crown"
-           class="hero-implant relative w-full h-auto mix-blend-multiply dark:mix-blend-screen dark:invert dark:opacity-90">
+           class="hero-implant relative w-full h-auto drop-shadow-[0_30px_50px_rgba(30,32,35,0.18)]">
     </div>
 
     <!-- Headline sits above the render; the middle line is pushed aside so the implant
@@ -84,52 +82,52 @@
      Buttons are pinned with mt-auto rather than flex-1 body copy, matching service_card. #}
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 stagger grid md:grid-cols-3 gap-6 items-start">
 
-    <div class="reveal group h-full flex flex-col rounded-2xl p-8 lg:p-10 card-pop bg-white dark:bg-slate-800 shadow-card ring-1 ring-slate-900/5 dark:ring-white/10">
-      <div class="w-12 h-12 rounded-xl bg-aqua-200 dark:bg-slate-700 text-primary dark:text-primary-300 grid place-items-center icon-pop">
+    <div class="reveal group h-full flex flex-col rounded-2xl p-8 lg:p-10 card-pop bg-white dark:bg-primary-800 shadow-card ring-1 ring-primary-900/5 dark:ring-white/10">
+      <div class="w-12 h-12 rounded-xl bg-aqua-200 dark:bg-primary-700 text-primary dark:text-primary-300 grid place-items-center icon-pop">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
       </div>
-      <h3 class="mt-5 font-heading text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-white min-h-[2.5rem]">Emergency Service</h3>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+      <h3 class="mt-5 font-heading text-sm font-bold uppercase tracking-wide text-primary dark:text-white min-h-[2.5rem]">Emergency Service</h3>
+      <p class="mt-1 text-sm text-ink-500 dark:text-primary-200 leading-relaxed">
         Same-day emergency slots reserved daily, plus a 24/7 on-call dentist.
       </p>
       <p class="mt-4 font-heading text-lg font-semibold text-primary dark:text-primary-300">{{ clinic_phone }}</p>
       <a href="tel:{{ clinic_phone }}" class="mt-auto pt-5 self-start">
-        <span class="inline-block bg-primary hover:bg-primary-600 text-white text-sm font-bold px-7 py-3 rounded-full shadow-card transition-transform hover:-translate-y-0.5">Call Now</span>
+        <span class="inline-block bg-primary hover:bg-primary-700 text-white text-sm font-bold px-7 py-3 rounded-full shadow-card transition-transform hover:-translate-y-0.5">Call Now</span>
       </a>
     </div>
 
-    <div class="reveal group h-full flex flex-col rounded-2xl p-8 lg:p-10 card-pop bg-white dark:bg-slate-800 shadow-card ring-1 ring-slate-900/5 dark:ring-white/10">
-      <div class="w-12 h-12 rounded-xl bg-aqua-200 dark:bg-slate-700 text-primary dark:text-primary-300 grid place-items-center icon-pop">
+    <div class="reveal group h-full flex flex-col rounded-2xl p-8 lg:p-10 card-pop bg-white dark:bg-primary-800 shadow-card ring-1 ring-primary-900/5 dark:ring-white/10">
+      <div class="w-12 h-12 rounded-xl bg-aqua-200 dark:bg-primary-700 text-primary dark:text-primary-300 grid place-items-center icon-pop">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </div>
-      <h3 class="mt-5 font-heading text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-white min-h-[2.5rem]">Do You Want To Make An Appointment</h3>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+      <h3 class="mt-5 font-heading text-sm font-bold uppercase tracking-wide text-primary dark:text-white min-h-[2.5rem]">Do You Want To Make An Appointment</h3>
+      <p class="mt-1 text-sm text-ink-500 dark:text-primary-200 leading-relaxed">
         Choose your treatment, preferred dentist and a time that suits you. We'll confirm by email within business hours.
       </p>
       <a href="{{ url_for('appointments.book') }}" class="mt-auto pt-7 self-start">
-        <span class="inline-block bg-primary hover:bg-primary-600 text-white text-sm font-bold px-7 py-3 rounded-full shadow-card transition-transform hover:-translate-y-0.5">Book Now</span>
+        <span class="inline-block bg-primary hover:bg-primary-700 text-white text-sm font-bold px-7 py-3 rounded-full shadow-card transition-transform hover:-translate-y-0.5">Book Now</span>
       </a>
     </div>
 
-    <div class="reveal group h-full flex flex-col rounded-2xl p-8 lg:p-10 card-pop bg-white dark:bg-slate-800 shadow-card ring-1 ring-slate-900/5 dark:ring-white/10">
-      <div class="w-12 h-12 rounded-xl bg-aqua-200 dark:bg-slate-700 text-primary dark:text-primary-300 grid place-items-center icon-pop">
+    <div class="reveal group h-full flex flex-col rounded-2xl p-8 lg:p-10 card-pop bg-white dark:bg-primary-800 shadow-card ring-1 ring-primary-900/5 dark:ring-white/10">
+      <div class="w-12 h-12 rounded-xl bg-aqua-200 dark:bg-primary-700 text-primary dark:text-primary-300 grid place-items-center icon-pop">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5.2l3.2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      <h3 class="mt-5 font-heading text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-white min-h-[2.5rem]">Opening Hours</h3>
-      <ul class="mt-1 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-        <li class="flex justify-between gap-4"><span>Monday – Friday</span><span class="font-semibold text-slate-800 dark:text-white">9:00 AM – 7:00 PM</span></li>
-        <li class="flex justify-between gap-4"><span>Saturday</span><span class="font-semibold text-slate-800 dark:text-white">9:00 AM – 4:30 PM</span></li>
-        <li class="flex justify-between gap-4"><span>Sunday</span><span class="font-semibold text-slate-800 dark:text-white">Emergency only</span></li>
+      <h3 class="mt-5 font-heading text-sm font-bold uppercase tracking-wide text-primary dark:text-white min-h-[2.5rem]">Opening Hours</h3>
+      <ul class="mt-1 space-y-2 text-sm text-ink-500 dark:text-primary-200">
+        <li class="flex justify-between gap-4"><span>Monday – Friday</span><span class="font-semibold text-primary dark:text-white">9:00 AM – 7:00 PM</span></li>
+        <li class="flex justify-between gap-4"><span>Saturday</span><span class="font-semibold text-primary dark:text-white">9:00 AM – 4:30 PM</span></li>
+        <li class="flex justify-between gap-4"><span>Sunday</span><span class="font-semibold text-primary dark:text-white">Emergency only</span></li>
       </ul>
       <a href="{{ url_for('main.contact') }}" class="mt-auto pt-7 self-start">
-        <span class="inline-block bg-primary hover:bg-primary-600 text-white text-sm font-bold px-7 py-3 rounded-full shadow-card transition-transform hover:-translate-y-0.5">Contact Us</span>
+        <span class="inline-block bg-primary hover:bg-primary-700 text-white text-sm font-bold px-7 py-3 rounded-full shadow-card transition-transform hover:-translate-y-0.5">Contact Us</span>
       </a>
     </div>
   </div>
 </section>
 
 <!-- Stats -->
-<section class="bg-primary-50 dark:bg-slate-800/60 border-y border-primary-100 dark:border-slate-700">
+<section class="bg-primary-50 dark:bg-primary-800/60 border-y border-primary-100 dark:border-white/15">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
     {% for stat in stats %}{{ stat_counter(stat) }}{% endfor %}
   </div>
@@ -142,16 +140,16 @@
     <div class="reveal group zoom-wrap rounded-2xl shadow-panel">
       <img src="{{ featured_doctors[0].photo_url if featured_doctors else url_for('static', filename='images/hero-dental-care.jpg') }}"
            alt="{{ featured_doctors[0].name if featured_doctors else clinic_name }}"
-           loading="lazy" class="lazy-fade zoom-img w-full h-auto object-cover rounded-2xl">
+           loading="lazy" class="portrait-mono lazy-fade zoom-img w-full h-auto object-cover rounded-2xl">
     </div>
 
     <div class="reveal">
-      <p class="mb-4 text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Professional Care</p>
-      <h2 class="font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white leading-tight">
-        About <span class="italic text-primary dark:text-gold-300">{{ clinic_name }}</span>
+      <p class="mb-4 text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule">Professional Care</p>
+      <h2 class="display-md">
+        <span class="hl-soft">More than a clinic</span> <span class="hl-strong">{{ clinic_name }}</span>
       </h2>
       <hr class="rule-gold w-24 mt-6">
-      <p class="mt-6 text-slate-500 dark:text-slate-400 leading-relaxed">
+      <p class="mt-6 text-ink-500 dark:text-primary-300 leading-relaxed">
         From routine prevention to full-scale reconstruction, every treatment is planned digitally and delivered by a specialist in that field.
       </p>
 
@@ -165,18 +163,18 @@
 </section>
 
 <!-- Services on the aqua band, in one floating white card -->
-<section class="relative overflow-hidden bg-gradient-to-br from-aqua-100 via-aqua-200 to-aqua-100 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 py-24">
+<section class="relative overflow-hidden bg-gradient-to-br from-aqua-100 via-aqua-200 to-aqua-100 dark:from-primary-800 dark:via-primary-800 dark:to-primary-900 py-24">
   <!-- Soft background shapes, pure CSS -->
   <div aria-hidden="true" class="drift absolute -left-1/4 top-1/4 w-[45rem] h-[45rem] rounded-full bg-white/40 dark:bg-white/5 blur-3xl"></div>
   <div aria-hidden="true" class="drift-slow absolute -right-32 -top-32 w-[38rem] h-[38rem] rotate-12 bg-aqua-50/60 dark:bg-white/5"></div>
 
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto reveal">
-      <p class="mb-4 text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule justify-center">What We Do</p>
-      <h2 class="font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Complete dental care under one roof</h2>
+      <p class="mb-4 text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule justify-center">What We Do</p>
+      <h2 class="display-md"><span class="hl-soft">Complete dental care</span> <span class="hl-strong">under one roof</span></h2>
     </div>
 
-    <div class="reveal mt-14 bg-white dark:bg-slate-800 rounded-3xl shadow-panel frame-gold p-10 lg:p-16">
+    <div class="reveal mt-14 bg-white dark:bg-primary-800 rounded-3xl shadow-panel frame-gold p-10 lg:p-16">
       <div class="stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-14">
         {% for service in featured_services[:6] %}{{ service_card(service) }}{% endfor %}
       </div>
@@ -192,12 +190,12 @@
 </section>
 
 <!-- Why choose us -->
-<section class="bg-gradient-to-b from-primary-50 to-white dark:from-slate-800 dark:to-slate-900 py-20">
+<section class="bg-gradient-to-b from-primary-50 to-white dark:from-primary-800 dark:to-primary-900 py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto reveal">
-      <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Why Choose Us</span>
-      <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Reasons patients keep coming back</h2>
-      <p class="mt-4 text-slate-500 dark:text-slate-400">Clinical excellence matters, but so does how you feel in the chair. We deliver both.</p>
+      <span class="text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule">Why Choose Us</span>
+      <h2 class="mt-4 display-md"><span class="hl-soft">Reasons patients</span> <span class="hl-strong">keep coming back</span></h2>
+      <p class="mt-4 text-ink-500 dark:text-primary-300">Clinical excellence matters, but so does how you feel in the chair. We deliver both.</p>
     </div>
 
     <div class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -213,11 +211,11 @@
       ] %}
       {% for path, title, desc in reasons %}
       <div class="reveal group glass gilt-edge rounded-2xl p-7 card-pop flex flex-col">
-        <div class="w-11 h-11 rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-gold-300 grid place-items-center mb-4 icon-pop shrink-0 transition-colors group-hover:bg-primary group-hover:text-white">
+        <div class="w-11 h-11 rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-primary-300 grid place-items-center mb-4 icon-pop shrink-0 transition-colors group-hover:bg-primary group-hover:text-white">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="{{ path }}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <h3 class="font-display font-semibold text-lg text-slate-900 dark:text-white mb-2 min-h-[3rem] flex items-start">{{ title }}</h3>
-        <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ desc }}</p>
+        <h3 class="font-display font-semibold text-lg text-primary dark:text-white mb-2 min-h-[3rem] flex items-start">{{ title }}</h3>
+        <p class="text-sm text-ink-500 dark:text-primary-300 leading-relaxed">{{ desc }}</p>
       </div>
       {% endfor %}
     </div>
@@ -227,9 +225,9 @@
 <!-- Doctors -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   <div class="text-center max-w-2xl mx-auto reveal">
-    <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Meet Our Doctors</span>
-    <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Specialists who treat what they teach</h2>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">Each of our clinicians focuses on a single discipline — so you are always seen by an expert, not a generalist.</p>
+    <span class="text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule">Meet Our Doctors</span>
+    <h2 class="mt-4 display-md"><span class="hl-soft">Specialists who treat</span> <span class="hl-strong">what they teach</span></h2>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">Each of our clinicians focuses on a single discipline — so you are always seen by an expert, not a generalist.</p>
   </div>
   <div class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
     {% for doctor in featured_doctors %}{{ doctor_card(doctor) }}{% endfor %}
@@ -237,12 +235,12 @@
 </section>
 
 <!-- Testimonials -->
-<section class="bg-primary-50 dark:bg-slate-800/60 py-20">
+<section class="bg-primary-50 dark:bg-primary-800/60 py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto reveal">
-      <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Patient Stories</span>
-      <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">15,000 smiles and counting</h2>
-      <p class="mt-4 text-slate-500 dark:text-slate-400">Real words from real patients treated at {{ clinic_name }}.</p>
+      <span class="text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule">Patient Stories</span>
+      <h2 class="mt-4 display-md"><span class="hl-strong">15,000 smiles</span> <span class="hl-soft">and counting</span></h2>
+      <p class="mt-4 text-ink-500 dark:text-primary-300">Real words from real patients treated at {{ clinic_name }}.</p>
     </div>
     <div x-data="{ page: 0, total: {{ testimonials|length }} }" class="mt-12">
       <div class="grid md:grid-cols-3 gap-6">
@@ -261,9 +259,9 @@
 <!-- Gallery -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   <div class="text-center max-w-2xl mx-auto reveal">
-    <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Gallery</span>
-    <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Smile transformations</h2>
-    <p class="mt-4 text-slate-500 dark:text-slate-400">A selection of recent work from our cosmetic and restorative team.</p>
+    <span class="text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule">Gallery</span>
+    <h2 class="mt-4 display-md"><span class="hl-soft">Smile</span> <span class="hl-strong">transformations</span></h2>
+    <p class="mt-4 text-ink-500 dark:text-primary-300">A selection of recent work from our cosmetic and restorative team.</p>
   </div>
 
   <div x-data="{ open: false, activeImg: '', activeCaption: '' }" class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -293,19 +291,19 @@
   </div>
 
   <div class="text-center mt-10">
-    <a href="{{ url_for('gallery.index') }}" class="inline-flex items-center gap-2 border border-slate-200 dark:border-slate-700 hover:border-primary text-slate-700 dark:text-slate-200 font-semibold px-6 py-3 rounded-full transition-colors">
+    <a href="{{ url_for('gallery.index') }}" class="inline-flex items-center gap-2 border border-primary-200 dark:border-white/15 hover:border-primary text-ink-700 dark:text-primary-100 font-semibold px-6 py-3 rounded-full transition-colors">
       View Full Gallery
     </a>
   </div>
 </section>
 
 <!-- Appointment CTA -->
-<section id="book" class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 py-20">
+<section id="book" class="bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-primary-800 dark:via-primary-900 dark:to-primary-800 py-20">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="reveal text-center max-w-2xl mx-auto">
-      <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">Book Online</span>
-      <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Reserve your appointment in under a minute</h2>
-      <p class="mt-4 text-slate-500 dark:text-slate-400">Choose your treatment, preferred dentist and a time that suits you. We'll confirm by email within business hours.</p>
+      <span class="text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule">Book Online</span>
+      <h2 class="mt-4 display-md"><span class="hl-soft">Reserve your appointment</span> <span class="hl-strong">in under a minute</span></h2>
+      <p class="mt-4 text-ink-500 dark:text-primary-300">Choose your treatment, preferred dentist and a time that suits you. We'll confirm by email within business hours.</p>
     </div>
 
     {# Indicative PKR bands. Deliberately copy, not data: Service has no price column, and
@@ -318,44 +316,44 @@
         ("Teeth whitening", "18,000", "35,000"),
       ] %}
       {% for label, low, high in price_bands %}
-      <div class="bg-white dark:bg-slate-800 frame-gold rounded-2xl px-5 py-4 text-center shadow-card">
-        <p class="text-[11px] uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">{{ label }}</p>
-        <p class="mt-2 font-display tnum text-xl font-semibold text-primary dark:text-gold-300">Rs {{ low }} – {{ high }}</p>
+      <div class="bg-white dark:bg-primary-800 frame-gold rounded-2xl px-5 py-4 text-center shadow-card">
+        <p class="text-[11px] uppercase tracking-[0.14em] text-primary-400 dark:text-primary-400">{{ label }}</p>
+        <p class="mt-2 font-display tnum text-xl font-semibold text-primary dark:text-primary-300">Rs {{ low }} – {{ high }}</p>
       </div>
       {% endfor %}
     </div>
-    <p class="reveal mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
+    <p class="reveal mt-3 text-center text-xs text-primary-400 dark:text-primary-400">
       Indicative ranges in PKR. Your exact quote is confirmed after examination — interest-free instalments available.
     </p>
 
-    <div class="reveal mt-10 bg-white dark:bg-slate-800 rounded-3xl shadow-soft p-6 sm:p-10 border border-slate-100 dark:border-slate-700">
+    <div class="reveal mt-10 bg-white dark:bg-primary-800 rounded-3xl shadow-soft p-6 sm:p-10 border border-primary-200/60 dark:border-white/15">
       {{ render_appointment_form(appt_form, url_for('appointments.book')) }}
     </div>
 
     <div class="reveal mt-8 grid sm:grid-cols-3 gap-4 text-sm">
-      <div class="flex justify-between sm:block bg-white/60 dark:bg-slate-800/60 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-700">
-        <span class="text-slate-500 dark:text-slate-400">Monday – Friday</span>
-        <span class="font-semibold text-slate-800 dark:text-white sm:block sm:mt-1">9:00 AM – 7:00 PM</span>
+      <div class="flex justify-between sm:block bg-white/60 dark:bg-primary-800/60 rounded-xl px-4 py-3 border border-primary-200/60 dark:border-white/15">
+        <span class="text-ink-500 dark:text-primary-300">Monday – Friday</span>
+        <span class="font-semibold text-primary dark:text-white sm:block sm:mt-1">9:00 AM – 7:00 PM</span>
       </div>
-      <div class="flex justify-between sm:block bg-white/60 dark:bg-slate-800/60 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-700">
-        <span class="text-slate-500 dark:text-slate-400">Saturday</span>
-        <span class="font-semibold text-slate-800 dark:text-white sm:block sm:mt-1">9:00 AM – 4:30 PM</span>
+      <div class="flex justify-between sm:block bg-white/60 dark:bg-primary-800/60 rounded-xl px-4 py-3 border border-primary-200/60 dark:border-white/15">
+        <span class="text-ink-500 dark:text-primary-300">Saturday</span>
+        <span class="font-semibold text-primary dark:text-white sm:block sm:mt-1">9:00 AM – 4:30 PM</span>
       </div>
       <div class="flex justify-between sm:block bg-red-50/70 dark:bg-red-900/20 rounded-xl px-4 py-3 border border-red-100 dark:border-red-800">
         <span class="text-red-500 dark:text-red-400">Sunday</span>
         <span class="font-semibold text-red-600 dark:text-red-400 sm:block sm:mt-1">Emergency care only</span>
       </div>
     </div>
-    <p class="reveal mt-4 text-center text-xs text-slate-400 dark:text-slate-500">Closed for a break from 1:00 – 2:00 PM, and for Jummah prayers on Fridays from 1:00 – 2:30 PM.</p>
-    <p class="reveal mt-4 text-center text-sm text-slate-500 dark:text-slate-400">Dental emergency? Call <a href="tel:{{ clinic_phone }}" class="text-primary font-semibold">{{ clinic_phone }}</a></p>
+    <p class="reveal mt-4 text-center text-xs text-primary-400 dark:text-primary-400">Closed for a break from 1:00 – 2:00 PM, and for Jummah prayers on Fridays from 1:00 – 2:30 PM.</p>
+    <p class="reveal mt-4 text-center text-sm text-ink-500 dark:text-primary-300">Dental emergency? Call <a href="tel:{{ clinic_phone }}" class="text-primary font-semibold">{{ clinic_phone }}</a></p>
   </div>
 </section>
 
 <!-- FAQs -->
 <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   <div class="text-center reveal">
-    <span class="text-[11px] font-semibold uppercase text-gold-600 dark:text-gold-300 section-eyebrow-rule">FAQs</span>
-    <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold text-slate-900 dark:text-white">Frequently asked questions</h2>
+    <span class="text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule">FAQs</span>
+    <h2 class="mt-4 display-md"><span class="hl-soft">Frequently asked</span> <span class="hl-strong">questions</span></h2>
   </div>
   <div class="mt-10 space-y-4">
     {% for faq in faqs %}{{ faq_item(faq, loop.index0) }}{% endfor %}
