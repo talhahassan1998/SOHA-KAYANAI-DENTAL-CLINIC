@@ -94,6 +94,30 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
   items.forEach((el) => observer.observe(el));
 })();
 
+// Scroll-linked drift for the hero implant. The apparent depth in the reference comes from
+// the render moving slower than the page, not from any 3D engine — a single translateY
+// offset written to a CSS variable is the whole effect.
+(function heroDrift() {
+  const el = document.querySelector(".hero-implant-shift");
+  if (!el || prefersReducedMotion) return;
+
+  const RATE = 0.18;      // px of drift per px of scroll; past ~0.3 it detaches from the page
+  const MAX_PX = 140;     // stop before it collides with the section below
+  let ticking = false;
+
+  const update = () => {
+    const drift = Math.min(window.scrollY * RATE, MAX_PX);
+    el.style.setProperty("--hero-drift", `${drift}px`);
+    ticking = false;
+  };
+
+  window.addEventListener("scroll", () => {
+    // rAF-coalesced: scroll fires far more often than the screen repaints.
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  update();
+})();
+
 // Lazy-fade images once loaded (progressive enhancement on top of native loading="lazy")
 (function lazyFadeImages() {
   document.querySelectorAll("img.lazy-fade").forEach((img) => {

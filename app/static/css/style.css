@@ -4,7 +4,7 @@ html { scroll-behavior: smooth; }
 
 ::selection { background-color: var(--brand-primary); color: #fff; }
 
-/* Eyebrow labels: wide tracking + a short brass rule is the cheapest premium cue there is. */
+/* Eyebrow labels: wide tracking + a short hairline rule. */
 .section-eyebrow {
   letter-spacing: 0.22em;
 }
@@ -31,12 +31,13 @@ html { scroll-behavior: smooth; }
 
   /* Brand hexes live here so the Tailwind config in base.html and this file cannot
      drift apart. Keep in sync with tailwind.config colors.primary / .gold / .secondary. */
-  --brand-primary: #0A5F7A;
-  --brand-gold: #C9A227;
-  /* gold-600 — the lightest brass that clears WCAG AA on white at body size (5.04:1).
-     Use this, never --brand-gold, for gold text on light backgrounds. */
-  --brand-gold-ink: #8A6A22;
-  --brand-secondary: #3CE2AD;
+  --brand-primary: #1E2023;
+  /* The de-emphasis grey — light half of a two-tone heading. ~2:1 on white, so it is
+     display-type only (24px+). Named `gold` for parity with the Tailwind key. */
+  --brand-gold: #B1BDCA;
+  /* Use this, never --brand-gold, for small text on light backgrounds (AA at body size). */
+  --brand-gold-ink: #666666;
+  --brand-secondary: #EEF3F6;
 }
 
 /* Card hover lift */
@@ -44,7 +45,7 @@ html { scroll-behavior: smooth; }
 .hover-lift:hover {
   transition-duration: var(--dur-hover-in);
   transform: translateY(-8px);
-  box-shadow: 0 34px 70px -30px rgba(10, 95, 122, .40);
+  box-shadow: 0 24px 60px -32px rgba(30, 32, 35, .20);
 }
 
 /* Zoom-on-hover for media. The wrapper clips; the inner img scales. */
@@ -62,7 +63,7 @@ html { scroll-behavior: smooth; }
 .card-pop:hover {
   transition-duration: var(--dur-hover-in);
   transform: translateY(-10px) scale(1.025);
-  box-shadow: 0 40px 90px -35px rgba(10, 95, 122, .42);
+  box-shadow: 0 30px 70px -34px rgba(30, 32, 35, .22);
 }
 
 /* Icon tiles that pop and rotate slightly on hover */
@@ -126,11 +127,11 @@ html { scroll-behavior: smooth; }
 .gilt-edge:hover::before,
 .group:hover .gilt-edge::before { opacity: .9; transition-duration: var(--dur-hover-in); }
 
-/* Static brass frame for panels that should read as "featured". */
+/* Static hairline frame for panels that should read as "featured". */
 .frame-gold {
-  border: 1px solid rgba(201, 162, 39, .28);
+  border: 1px solid rgba(177, 189, 202, .55);
 }
-.dark .frame-gold { border-color: rgba(201, 162, 39, .22); }
+.dark .frame-gold { border-color: rgba(238, 243, 246, .14); }
 
 /* Slow sheen across a headline or badge. Pair with .animate-shimmer. */
 .sheen {
@@ -138,6 +139,113 @@ html { scroll-behavior: smooth; }
   background-size: 200% 100%;
   background-repeat: no-repeat;
 }
+
+/* ---- Reference design language ---------------------------------------------
+   The look is carried by three things: light-weight display type with tight
+   tracking, two-tone headings, and hairline list rows. No color, no elevation. */
+
+/* Display headings. Light by default — weight is an accent, not the baseline. */
+.display-xl,
+.display-lg,
+.display-md {
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+  color: var(--brand-primary);
+}
+.display-xl { font-size: clamp(2.75rem, 7.5vw, 6rem); }
+.display-lg { font-size: clamp(2.25rem, 5.5vw, 4.25rem); }
+.display-md { font-size: clamp(1.75rem, 3.5vw, 2.75rem); line-height: 1.12; }
+.dark .display-xl,
+.dark .display-lg,
+.dark .display-md { color: #EEF3F6; }
+
+/* The signature move: one heading, two voices. Bold ink for the words that carry
+   meaning, light grey for the connective ones — "Expert <b>care</b> for <em>every</em>
+   smile". Grey is display-only (~2:1 on white); never use .hl-soft below 24px. */
+.hl-strong { font-weight: 500; color: var(--brand-primary); }
+.hl-soft   { font-weight: 200; color: var(--brand-gold); }
+.dark .hl-strong { color: #FFFFFF; }
+.dark .hl-soft   { color: #6B7480; }
+
+/* Giant footer wordmark, clipped at the viewport edges. */
+.wordmark {
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: .82;
+  font-size: clamp(3.5rem, 19vw, 17rem);
+  white-space: nowrap;
+}
+
+/* Pill CTA — 50px radius, ink fill, no shadow. */
+.btn-pill {
+  display: inline-flex; align-items: center; gap: .6rem;
+  padding: .95rem 1.9rem;
+  border-radius: 50px;
+  background: var(--brand-primary);
+  color: #fff;
+  font-size: .8rem; font-weight: 400; letter-spacing: .01em;
+  transition: background-color var(--dur-hover-out) ease, transform var(--dur-hover-out) var(--ease-glide);
+}
+.btn-pill:hover { background: #000; transform: translateY(-2px); }
+.dark .btn-pill { background: #EEF3F6; color: #1E2023; }
+.dark .btn-pill:hover { background: #fff; }
+
+/* Outline pill, for secondary actions. */
+.btn-pill-ghost {
+  display: inline-flex; align-items: center; gap: .6rem;
+  padding: .95rem 1.9rem;
+  border-radius: 50px;
+  border: 1px solid rgba(30, 32, 35, .22);
+  color: var(--brand-primary);
+  font-size: .8rem; font-weight: 400;
+  transition: border-color var(--dur-hover-out) ease, background-color var(--dur-hover-out) ease;
+}
+.btn-pill-ghost:hover { border-color: var(--brand-primary); background: rgba(30, 32, 35, .04); }
+.dark .btn-pill-ghost { border-color: rgba(238, 243, 246, .28); color: #EEF3F6; }
+
+/* Services list row: hairline rule, arrow slides out on hover. */
+.list-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid rgba(30, 32, 35, .14);
+  transition: border-color var(--dur-hover-out) ease;
+}
+.dark .list-row { border-bottom-color: rgba(238, 243, 246, .14); }
+.list-row:hover { border-bottom-color: var(--brand-primary); }
+.list-row .list-arrow {
+  flex: none;
+  transition: transform var(--dur-hover-in) var(--ease-glide);
+}
+.list-row:hover .list-arrow { transform: translate(4px, 4px); }
+
+/* Circular icon button (carousel prev/next, small actions). */
+.btn-circle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.75rem; height: 2.75rem;
+  border-radius: 50%;
+  border: 1px solid rgba(30, 32, 35, .22);
+  color: var(--brand-primary);
+  transition: background-color var(--dur-hover-out) ease, border-color var(--dur-hover-out) ease;
+}
+.btn-circle:hover { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
+.btn-circle:disabled { opacity: .3; pointer-events: none; }
+.dark .btn-circle { border-color: rgba(238, 243, 246, .28); color: #EEF3F6; }
+.dark .btn-circle:hover { background: #EEF3F6; color: #1E2023; }
+
+/* Hero implant: slow float, plus a scroll-linked drift set by main.js. */
+.hero-implant {
+  animation: float 7s ease-in-out infinite;
+  transform: translateY(var(--hero-drift, 0px));
+  will-change: transform;
+}
+/* The float keyframe and the drift variable fight over `transform`, so the wrapper
+   carries the scroll offset and the inner element carries the loop. */
+.hero-implant-shift { transform: translate3d(0, var(--hero-drift, 0px), 0); will-change: transform; }
+
+/* Portrait treatment for patient/doctor photos — the reference is entirely B&W. */
+.portrait-mono { filter: grayscale(1) contrast(1.04); transition: filter .6s var(--ease-glide); }
+.group:hover .portrait-mono, .portrait-mono:hover { filter: grayscale(0) contrast(1); }
 
 /* Numerals in stat counters and prices: tabular so they stop jittering mid-count. */
 .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
@@ -269,6 +377,16 @@ img.lazy-fade.loaded {
   .gilt-edge::before { transition: none; opacity: .9; }
   .sheen { background-image: none; animation: none; }
 
+  /* Reference design language: kill the hero float and its scroll-linked drift, freeze
+     the list-row arrow and circular buttons, and drop the portrait desaturation sweep. */
+  .hero-implant { animation: none; transform: none; }
+  .hero-implant-shift { transform: none; }
+  .list-row, .list-row .list-arrow { transition: none; }
+  .list-row:hover .list-arrow { transform: none; }
+  .btn-pill, .btn-pill-ghost, .btn-circle { transition: none; }
+  .btn-pill:hover { transform: none; }
+  .portrait-mono { transition: none; }
+
   *, *::before, *::after {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
@@ -282,10 +400,14 @@ img.lazy-fade.loaded {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Focus visibility for accessibility */
+/* Ink, not --brand-secondary: that token is now a near-white tint and would render the
+   focus ring invisible on a white page. */
 a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-  outline: 2px solid var(--brand-secondary);
+  outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
+.dark a:focus-visible, .dark button:focus-visible, .dark input:focus-visible,
+.dark textarea:focus-visible, .dark select:focus-visible { outline-color: #EEF3F6; }
 
 /* Custom select styling: reset native arrow, add themed chevron + option colors */
 select.form-select {

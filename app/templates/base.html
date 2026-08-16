@@ -22,7 +22,11 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Apply the stored theme before first paint. Alpine sets `dark` too, but only after it
+     boots — without this the page flashes light on every load for dark-mode users. -->
+<script>if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');</script>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -31,37 +35,38 @@
     theme: {
       extend: {
         colors: {
-          // Deep teal. Darker and less cyan than the old #0078AA so large fills read as
-          // considered rather than clinical, and so white text clears AA from 600 up.
-          primary: { DEFAULT: '#0A5F7A', 50: '#F0F7F9', 100: '#D8ECF1', 200: '#AED6E0', 300: '#7BB8C8', 400: '#4593AB', 500: '#0A5F7A', 600: '#084C62', 700: '#063A4B', 800: '#042835', 900: '#02171F' },
-          secondary: { DEFAULT: '#3CE2AD', 50: '#ECFDF7', 100: '#D2FAEC', 200: '#A5F3D8', 300: '#78EBC5', 400: '#3CE2AD', 500: '#22C795', 600: '#17A177', 700: '#117A5A', 800: '#0B523C', 900: '#062B1F' },
-          // Warm porcelain, replacing the old bright cyan ramp. Bright cyan fought the
-          // deep teal + brass palette and read clinical; a warm off-white lets the
-          // accents carry the page. Kept under the `aqua` name so the existing
-          // aqua-50/100/200 usages across the templates keep working.
-          aqua: { 50: '#FCFBF8', 100: '#F7F4ED', 200: '#EFEAE0', 300: '#E3DCCD', 400: '#CFC5B0', 500: '#B3A88E' },
-          // Brass accent for premium signalling — hairlines, small caps, icon strokes.
-          // 600 (#8A6A22) is the lightest step that clears WCAG AA on white at body size;
-          // anything lighter is reserved for borders and large display type only.
-          gold: { DEFAULT: '#C9A227', 50: '#FBF7EA', 100: '#F5EDCF', 200: '#EBDCA0', 300: '#DFC76A', 400: '#D4B546', 500: '#C9A227', 600: '#8A6A22', 700: '#6B521B', 800: '#4A3813', 900: '#2A200B' },
-          ink: { DEFAULT: '#0F1B22', 700: '#24343D', 500: '#4A5C66' },
+          // Near-black ink ramp. The whole palette is monochrome cool-grey — separation
+          // comes from tint bands and type weight, never from hue.
+          primary: { DEFAULT: '#1E2023', 50: '#F6F8F9', 100: '#EEF3F6', 200: '#D8DEE4', 300: '#B1BDCA', 400: '#6B7480', 500: '#1E2023', 600: '#1D2124', 700: '#1F2121', 800: '#161819', 900: '#0F1113' },
+          // Pale cool tints used for section bands. No hue, just a hair of blue.
+          secondary: { DEFAULT: '#EEF3F6', 50: '#FBFCFD', 100: '#F4F4F4', 200: '#EEF3F6', 300: '#E4EAEF', 400: '#CCD4DF', 500: '#C7D3DF', 600: '#B1BECB', 700: '#8D98A5', 800: '#5E666F', 900: '#343432' },
+          // Section-band tint. Kept under the `aqua` name so existing aqua-50/100/200
+          // usages across the templates keep working without a find-and-replace.
+          aqua: { 50: '#FBFCFD', 100: '#F4F4F4', 200: '#EEF3F6', 300: '#E4EAEF', 400: '#CCD4DF', 500: '#B1BDCA' },
+          // Cool blue-grey. This is the de-emphasis color — the light half of a
+          // two-tone heading ("Expert care for *every* smile"). Misnamed `gold` because
+          // ~20 templates reference the key; the reference palette has no brass at all.
+          // At ~2:1 on white it is DISPLAY-TYPE ONLY (24px+). Never body copy.
+          gold: { DEFAULT: '#B1BDCA', 50: '#F7F9FB', 100: '#EEF3F6', 200: '#DCE3EA', 300: '#C7D3DF', 400: '#B1BDCA', 500: '#9AA7B6', 600: '#666666', 700: '#4A505D', 800: '#343432', 900: '#212121' },
+          ink: { DEFAULT: '#1E2023', 700: '#343432', 500: '#666666' },
         },
         fontFamily: {
-          // Serif display over sans body — the single strongest premium cue available
-          // without commissioning a typeface.
-          display: ['Fraunces', 'Georgia', 'serif'],
-          heading: ['Poppins', 'sans-serif'],
-          body: ['Inter', 'sans-serif'],
+          // Poppins only. The reference drops serif entirely; character comes from
+          // light weights (200-400) and tight tracking, not from a display face.
+          display: ['Poppins', 'Arial', 'Helvetica', 'sans-serif'],
+          heading: ['Poppins', 'Arial', 'Helvetica', 'sans-serif'],
+          body: ['Poppins', 'Arial', 'Helvetica', 'sans-serif'],
         },
-        letterSpacing: { luxe: '0.22em' },
+        letterSpacing: { luxe: '0.22em', tightest: '-0.02em', wordmark: '-0.06em' },
         boxShadow: {
-          // Larger, softer, lower-opacity casts. Premium depth reads as a wide ambient
-          // shadow, not a tight dark one.
-          soft: '0 18px 60px -18px rgba(10, 95, 122, 0.18)',
-          card: '0 2px 8px -2px rgba(15, 23, 42, 0.04), 0 12px 40px -12px rgba(15, 23, 42, 0.10)',
-          panel: '0 32px 80px -32px rgba(10, 95, 122, 0.30), 0 4px 16px -6px rgba(15, 23, 42, 0.06)',
-          lift: '0 40px 90px -35px rgba(10, 95, 122, 0.42)',
+          // Near-flat. The reference separates with tint bands, not elevation, so these
+          // are deliberately faint — a visible shadow reads as the wrong site.
+          soft: '0 18px 60px -24px rgba(30, 32, 35, 0.10)',
+          card: '0 1px 2px -1px rgba(30, 32, 35, 0.04), 0 8px 30px -14px rgba(30, 32, 35, 0.08)',
+          panel: '0 24px 70px -36px rgba(30, 32, 35, 0.18)',
+          lift: '0 30px 70px -34px rgba(30, 32, 35, 0.22)',
         },
+        borderRadius: { pill: '50px', card: '12px' },
         animation: {
           'fade-up': 'fadeUp 0.6s ease-out forwards',
           'float': 'float 6s ease-in-out infinite',

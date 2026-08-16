@@ -17,3 +17,6 @@ Thumbs.db
 node_modules/
 .vscode/
 .idea/
+
+# Reference frames extracted from the design video (scratch)
+ref/

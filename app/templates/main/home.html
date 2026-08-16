@@ -9,67 +9,69 @@
 
 {% block content %}
 
-<!-- Hero: copy on the left, full-bleed photo filling the right edge.
-     The negative top margin cancels the sticky navbar's own height (h-16 / lg:h-20) so the
-     photo still runs to the very top of the page and the bar floats over it. -->
-<section class="relative bg-white dark:bg-slate-900 overflow-hidden -mt-16 lg:-mt-20">
-  <!-- Photo bleeds to the right edge with no frame. On mobile it sits behind the copy under a scrim. -->
-  <div class="absolute inset-y-0 right-0 w-full lg:w-[58%]">
-    {# ponytail: uses the clinic's own photo. It is a treatment shot rather than a smiling
-       face, which is weaker for a hero — replace with clinic photography of a smiling
-       patient when it exists. object-top keeps the clinician, not the floor, in frame. #}
-    <img src="{{ url_for('static', filename='images/hero-dental-care.jpg') }}"
-         alt="Treatment underway at {{ clinic_name }}" class="w-full h-full object-cover object-top">
-    <div class="absolute inset-0 bg-white/90 dark:bg-slate-900/90 lg:hidden"></div>
-    {# Wider, two-stop fade so the photo dissolves into the page instead of ending on a hard
-       vertical seam. Needs to clear the headline, hence w-96 rather than w-72. #}
-    <div class="hidden lg:block absolute inset-y-0 left-0 w-96 bg-gradient-to-r from-white via-white/85 dark:from-slate-900 dark:via-slate-900/85 to-transparent"></div>
-    <div class="hidden lg:block absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white dark:from-slate-900 to-transparent"></div>
-  </div>
+<!-- Hero: the implant render floats centre-stage and the headline wraps around it, with the
+     supporting copy pinned to the lower corners. Negative top margin cancels the sticky
+     navbar height (h-16 / lg:h-20) so the section runs to the very top of the page. -->
+<section class="relative bg-white dark:bg-primary-900 overflow-hidden -mt-16 lg:-mt-20">
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 lg:pt-40 lg:pb-24">
 
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="lg:w-[46%] pt-32 pb-24 lg:pt-52 lg:pb-40 reveal">
-      <span class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.22em] uppercase text-gold-600 dark:text-gold-300 bg-gold-50 dark:bg-gold-900/30 frame-gold px-4 py-1.5 rounded-full">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-3.5 h-3.5"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
-        Trusted in Islamabad Since 2014
-      </span>
-      <h1 class="mt-6 font-display text-5xl sm:text-6xl lg:text-7xl font-semibold leading-[1.05] tracking-tight text-slate-900 dark:text-white">
-        Your Smile,<br><span class="italic text-primary dark:text-gold-300">Our Priority</span>
+    <!-- Implant render, centred behind the type. The wrapper carries the scroll-linked
+         drift (set by main.js); the inner element carries the idle float loop. -->
+    <div class="hero-implant-shift pointer-events-none absolute left-1/2 -translate-x-1/2 top-52 lg:top-56 w-[58%] sm:w-[42%] lg:w-[30%] max-w-sm z-0">
+      {# mix-blend-multiply drops the render's white ground onto the page without needing a
+         cutout, but it also eats the crown's own highlights — a soft radial plate behind it
+         restores the white so the crown reads as ceramic rather than translucent. #}
+      <div class="absolute inset-[12%] rounded-full bg-white blur-2xl dark:bg-primary-900"></div>
+      <img src="{{ url_for('static', filename='images/hero-implant.png') }}"
+           alt="Dental implant with ceramic crown"
+           class="hero-implant relative w-full h-auto mix-blend-multiply dark:mix-blend-screen dark:invert dark:opacity-90">
+    </div>
+
+    <!-- Headline sits above the render; the middle line is pushed aside so the implant
+         reads through the gap the way the reference does. -->
+    <div class="relative z-10 reveal">
+      <h1 class="display-xl text-center lg:text-left lg:max-w-[62%]">
+        <span class="hl-soft">innovative</span> <span class="hl-strong">tooth restoration</span>
       </h1>
-      <hr class="rule-gold w-24 mt-7">
-      <p class="mt-6 text-sm sm:text-[15px] text-slate-600 dark:text-slate-300 max-w-md leading-relaxed">
-        Advanced dental care with experienced specialists — digital diagnostics, gentle technique, and honest guidance from your first visit.
-      </p>
+      {# Pushed right and held clear of the centre so the implant render shows through the
+         gap between the two blocks, the way the reference stacks them. #}
+      <h1 class="display-xl text-center lg:text-right mt-2 lg:mt-10 lg:ml-auto lg:max-w-[58%]">
+        <span class="hl-soft">technology for a</span> <span class="hl-strong">healthy</span>
+      </h1>
+    </div>
 
-      {# Two explicit CTAs beat three unlabelled icons. WhatsApp sits alongside the booking
-         button because it is how most patients here actually make first contact. #}
-      <div class="mt-9 flex flex-wrap items-center gap-3">
-        <a href="{{ url_for('appointments.book') }}"
-           class="inline-flex items-center gap-2 bg-primary hover:bg-primary-600 text-white font-semibold text-sm px-7 py-3.5 rounded-full shadow-soft transition-all duration-300 hover:-translate-y-0.5 whitespace-nowrap">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4.5 h-4.5"><rect x="2.5" y="7" width="19" height="12.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 10.5v5M9.5 13h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          Book Appointment
-        </a>
-        <a href="https://wa.me/{{ clinic_whatsapp_number }}?text={{ 'Assalam o Alaikum, I would like to book a dental appointment at ' ~ clinic_name ~ '.' | urlencode }}"
-           target="_blank" rel="noopener noreferrer"
-           class="inline-flex items-center gap-2 bg-white dark:bg-slate-800 frame-gold text-slate-800 dark:text-white font-semibold text-sm px-7 py-3.5 rounded-full shadow-card transition-all duration-300 hover:-translate-y-0.5 whitespace-nowrap">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4.5 h-4.5 text-[#25D366]"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 2.1.55 4.06 1.6 5.8L2 22l4.42-1.68a9.9 9.9 0 0 0 5.62 1.72h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2Zm5.8 14.12c-.24.68-1.4 1.3-1.94 1.34-.5.04-.96.22-3.23-.67-2.72-1.07-4.44-3.83-4.57-4.01-.13-.18-1.09-1.45-1.09-2.76 0-1.31.69-1.96.93-2.22.24-.27.53-.33.7-.33h.5c.16 0 .38-.06.59.45.24.58.81 2 .88 2.14.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.35-.42.47-.14.14-.28.29-.12.57.16.27.72 1.19 1.55 1.93 1.07.95 1.97 1.25 2.25 1.39.27.14.43.12.59-.07.16-.18.68-.79.86-1.07.18-.27.36-.22.61-.13.24.09 1.55.73 1.82.87.27.13.45.2.51.31.07.11.07.63-.17 1.31Z"/></svg>
-          WhatsApp Us
-        </a>
+    <!-- Lower band: CTA left, closing headline right, clearing the implant. -->
+    <div class="relative z-10 mt-[15rem] sm:mt-[17rem] lg:mt-[19rem] grid lg:grid-cols-2 gap-10 items-end reveal">
+      <div>
+        <p class="text-[11px] font-light tracking-[0.18em] uppercase text-ink-500 dark:text-primary-300">
+          Trusted in Islamabad Since 2014
+        </p>
+        <p class="mt-4 text-sm text-ink-500 dark:text-primary-300 max-w-sm leading-relaxed font-light">
+          Advanced dental care with experienced specialists — digital diagnostics, gentle technique, and honest guidance from your first visit.
+        </p>
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <a href="{{ url_for('appointments.book') }}" class="btn-pill">Book a Consultation</a>
+          <a href="https://wa.me/{{ clinic_whatsapp_number }}?text={{ 'Assalam o Alaikum, I would like to book a dental appointment at ' ~ clinic_name ~ '.' | urlencode }}"
+             target="_blank" rel="noopener noreferrer" class="btn-pill-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 2.1.55 4.06 1.6 5.8L2 22l4.42-1.68a9.9 9.9 0 0 0 5.62 1.72h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2Zm5.8 14.12c-.24.68-1.4 1.3-1.94 1.34-.5.04-.96.22-3.23-.67-2.72-1.07-4.44-3.83-4.57-4.01-.13-.18-1.09-1.45-1.09-2.76 0-1.31.69-1.96.93-2.22.24-.27.53-.33.7-.33h.5c.16 0 .38-.06.59.45.24.58.81 2 .88 2.14.07.14.12.31.02.49-.09.18-.14.29-.28.45-.14.16-.29.35-.42.47-.14.14-.28.29-.12.57.16.27.72 1.19 1.55 1.93 1.07.95 1.97 1.25 2.25 1.39.27.14.43.12.59-.07.16-.18.68-.79.86-1.07.18-.27.36-.22.61-.13.24.09 1.55.73 1.82.87.27.13.45.2.51.31.07.11.07.63-.17 1.31Z"/></svg>
+            WhatsApp Us
+          </a>
+        </div>
       </div>
 
-      {# Real patient faces come from the testimonials table rather than stock avatars,
-         so the social proof matches the people quoted further down the page. #}
-      <div class="mt-10 flex items-center gap-4">
-        <div class="flex -space-x-3">
-          {% for t in testimonials[:3] %}
-          <img class="w-9 h-9 rounded-full border-2 border-white dark:border-slate-900 object-cover" src="{{ t.patient_photo_url }}" alt="{{ t.patient_name }}" loading="lazy">
-          {% endfor %}
-        </div>
-        <div>
-          <div class="flex text-gold-500">
-            {% for i in range(5) %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.1 6.5L12 17.3l-5.8 3.2 1.1-6.5-4.8-4.6 6.6-.9L12 2.5Z"/></svg>{% endfor %}
+      <div class="lg:text-right">
+        <h2 class="display-lg">
+          <span class="hl-soft">and</span> <span class="hl-strong">confident smile</span>
+        </h2>
+        {# Real patient faces from the testimonials table, not stock avatars — the social
+           proof matches the people quoted further down the page. #}
+        <div class="mt-6 flex items-center gap-4 lg:justify-end">
+          <div class="flex -space-x-3">
+            {% for t in testimonials[:3] %}
+            <img class="w-9 h-9 rounded-full border-2 border-white dark:border-primary-900 object-cover portrait-mono" src="{{ t.patient_photo_url }}" alt="{{ t.patient_name }}" loading="lazy">
+            {% endfor %}
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Rated 4.9/5 by 2,400+ patients</p>
+          <p class="text-xs text-ink-500 dark:text-primary-300 font-light">Rated 4.9/5 by 2,400+ patients</p>
         </div>
       </div>
     </div>
