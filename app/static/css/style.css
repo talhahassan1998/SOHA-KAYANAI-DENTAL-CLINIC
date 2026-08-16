@@ -164,7 +164,10 @@ html { scroll-behavior: smooth; }
    meaning, light grey for the connective ones — "Expert <b>care</b> for <em>every</em>
    smile". Grey is display-only (~2:1 on white); never use .hl-soft below 24px. */
 .hl-strong { font-weight: 500; color: var(--brand-primary); }
-.hl-soft   { font-weight: 200; color: var(--brand-gold); }
+/* #7F8E9F, not the reference's own #B1BDCA: that reads 1.91:1 on white and fails even the
+   3:1 large-text bar. This step clears 3:1 on the #EEF3F6 tint bands too, not just on
+   white. --brand-gold stays #B1BDCA for borders and decoration, where contrast is moot. */
+.hl-soft   { font-weight: 200; color: #7F8E9F; }
 .dark .hl-strong { color: #FFFFFF; }
 .dark .hl-soft   { color: #6B7480; }
 
