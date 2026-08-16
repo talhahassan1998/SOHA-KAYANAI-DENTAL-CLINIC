@@ -168,23 +168,33 @@
   <div aria-hidden="true" class="drift absolute -left-1/4 top-1/4 w-[45rem] h-[45rem] rounded-full bg-white/40 dark:bg-white/5 blur-3xl"></div>
   <div aria-hidden="true" class="drift-slow absolute -right-32 -top-32 w-[38rem] h-[38rem] rotate-12 bg-aqua-50/60 dark:bg-white/5"></div>
 
+  {# Split layout, as in the reference: the heading anchors the left column and the services
+     read as hairline rows on the right rather than as a grid of boxes. #}
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center max-w-2xl mx-auto reveal">
-      <p class="mb-4 text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule justify-center">What We Do</p>
-      <h2 class="display-md"><span class="hl-soft">Complete dental care</span> <span class="hl-strong">under one roof</span></h2>
-    </div>
+    <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
 
-    <div class="reveal mt-14 bg-white dark:bg-primary-800 rounded-3xl shadow-panel frame-gold p-10 lg:p-16">
-      <div class="stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-14">
-        {% for service in featured_services[:6] %}{{ service_card(service) }}{% endfor %}
+      <div class="reveal lg:sticky lg:top-28">
+        <p class="mb-4 text-[11px] font-light uppercase text-ink-500 dark:text-primary-300 section-eyebrow-rule">What We Do</p>
+        <h2 class="display-lg">
+          <span class="hl-strong">Expert care</span> <span class="hl-soft">for every</span> <span class="hl-strong">smile</span>
+        </h2>
+        <p class="mt-6 text-sm text-ink-500 dark:text-primary-300 font-light leading-relaxed max-w-sm">
+          From routine prevention to full-scale reconstruction, every treatment is planned digitally and delivered by a specialist in that field.
+        </p>
+        <a href="{{ url_for('services.list_services') }}" class="btn-pill mt-8">View All Services</a>
       </div>
-    </div>
 
-    <div class="text-center mt-12">
-      <a href="{{ url_for('services.list_services') }}" class="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary-600">
-        View All Services
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
+      <div class="stagger">
+        {% for service in featured_services[:6] %}
+        <a href="{{ url_for('services.detail', slug=service.slug) }}" class="reveal list-row group">
+          <span class="min-w-0">
+            <span class="block text-base sm:text-lg font-normal tracking-tightest text-primary dark:text-white">{{ service.name }}</span>
+            <span class="block mt-1 text-xs text-ink-500 dark:text-primary-300 font-light leading-relaxed">{{ service.short_description }}</span>
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="list-arrow w-5 h-5 text-primary dark:text-white"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        {% endfor %}
+      </div>
     </div>
   </div>
 </section>
