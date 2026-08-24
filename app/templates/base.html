@@ -35,19 +35,26 @@
     theme: {
       extend: {
         colors: {
-          // Near-black ink ramp. The whole palette is monochrome cool-grey — separation
-          // comes from tint bands and type weight, never from hue.
-          primary: { DEFAULT: '#1E2023', 50: '#F6F8F9', 100: '#EEF3F6', 200: '#D8DEE4', 300: '#B1BDCA', 400: '#6B7480', 500: '#1E2023', 600: '#1D2124', 700: '#1F2121', 800: '#161819', 900: '#0F1113' },
-          // Pale cool tints used for section bands. No hue, just a hair of blue.
-          secondary: { DEFAULT: '#EEF3F6', 50: '#FBFCFD', 100: '#F4F4F4', 200: '#EEF3F6', 300: '#E4EAEF', 400: '#CCD4DF', 500: '#C7D3DF', 600: '#B1BECB', 700: '#8D98A5', 800: '#5E666F', 900: '#343432' },
-          // Section-band tint. Kept under the `aqua` name so existing aqua-50/100/200
-          // usages across the templates keep working without a find-and-replace.
-          aqua: { 50: '#FBFCFD', 100: '#F4F4F4', 200: '#EEF3F6', 300: '#E4EAEF', 400: '#CCD4DF', 500: '#B1BDCA' },
-          // Cool blue-grey. This is the de-emphasis color — the light half of a
-          // two-tone heading ("Expert care for *every* smile"). Misnamed `gold` because
-          // ~20 templates reference the key; the reference palette has no brass at all.
-          // At ~2:1 on white it is DISPLAY-TYPE ONLY (24px+). Never body copy.
-          gold: { DEFAULT: '#B1BDCA', 50: '#F7F9FB', 100: '#EEF3F6', 200: '#DCE3EA', 300: '#C7D3DF', 400: '#B1BDCA', 500: '#9AA7B6', 600: '#666666', 700: '#4A505D', 800: '#343432', 900: '#212121' },
+          // Clinical teal — the brand hue. Replaces the former near-black ink ramp as
+          // the primary, so buttons, links, icons and active states all read teal.
+          // 500 is the anchor (#0E7C86); 600+ darken for hover and dark-mode grounds.
+          // NOTE on the ramp's two halves — 700/800/900 are used 65+ times as dark-mode
+          // page/card GROUNDS and 300/400 as muted text on them, so those stay
+          // near-neutral (a teal-tinted charcoal, not saturated teal) or dark mode turns
+          // into a solid teal page. The saturated brand hue lives at 400-600, which is
+          // what buttons, links and icons actually reference.
+          primary: { DEFAULT: '#0E7C86', 50: '#F0F9FA', 100: '#E6F4F5', 200: '#C2E5E8', 300: '#9FB4B7', 400: '#14A0AD', 500: '#0E7C86', 600: '#0B646D', 700: '#1B2427', 800: '#161D1F', 900: '#0F1416' },
+          // Warm sand — the support tone behind alternating section bands.
+          secondary: { DEFAULT: '#F2E4D4', 50: '#FDFAF6', 100: '#FAF3EA', 200: '#F2E4D4', 300: '#E7D0B6', 400: '#D9B892', 500: '#C89B54', 600: '#A67C3D', 700: '#7E5D2E', 800: '#553F1F', 900: '#2E2210' },
+          // Pale teal wash for section bands. Kept under the `aqua` name so existing
+          // aqua-50/100/200 usages across the templates keep working unchanged.
+          aqua: { 50: '#F5FBFB', 100: '#E6F4F5', 200: '#D2ECEE', 300: '#B4DFE3', 400: '#8FCFD6', 500: '#5FB8C2' },
+          // Coral accent — the warm counterpoint to teal, for highlights and the light
+          // half of a two-tone heading. Kept under the `gold` key because ~20 templates
+          // reference it. 500+ are AA on white; 300/400 are DISPLAY-TYPE ONLY (24px+).
+          gold: { DEFAULT: '#E8734A', 50: '#FEF5F1', 100: '#FCE8E0', 200: '#F8CDBC', 300: '#F2A98C', 400: '#EC8C66', 500: '#E8734A', 600: '#C85729', 700: '#9E421F', 800: '#6F2E15', 900: '#421B0C' },
+          // Neutral text ramp. Body copy stays near-black for readability — colour is
+          // carried by primary/gold, not by the running text.
           ink: { DEFAULT: '#1E2023', 700: '#343432', 500: '#666666' },
         },
         fontFamily: {

@@ -101,13 +101,23 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
   const el = document.querySelector(".hero-implant-shift");
   if (!el || prefersReducedMotion) return;
 
-  const RATE = 0.18;      // px of drift per px of scroll; past ~0.3 it detaches from the page
-  const MAX_PX = 140;     // stop before it collides with the section below
+  // CSS `position: sticky` already supplies most of the lag; this is only the extra
+  // settle on top of it. Raising RATE here double-counts and the render over-travels.
+  const RATE = 0.06;
+  const MAX_PX = 60;      // stop before it collides with the section below
   let ticking = false;
 
+  // Pinned, the render would otherwise sit on top of the lower hero band and the cards
+  // below it. Fade it across the back half of its travel so it clears that content
+  // instead of overlapping it.
+  const FADE_START = 280;
+  const FADE_END = 560;
+
   const update = () => {
-    const drift = Math.min(window.scrollY * RATE, MAX_PX);
-    el.style.setProperty("--hero-drift", `${drift}px`);
+    const y = window.scrollY;
+    el.style.setProperty("--hero-drift", `${Math.min(y * RATE, MAX_PX)}px`);
+    const t = (y - FADE_START) / (FADE_END - FADE_START);
+    el.style.opacity = String(1 - Math.min(Math.max(t, 0), 1));
     ticking = false;
   };
 
@@ -117,6 +127,15 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
   }, { passive: true });
   update();
 })();
+
+// `autoplay` on the hero clip ignores prefers-reduced-motion, and CSS can't pause a
+// video — so freeze it here on the poster frame for anyone who asked for less motion.
+if (prefersReducedMotion) {
+  document.querySelectorAll("video[autoplay]").forEach((v) => {
+    v.removeAttribute("autoplay");
+    v.pause();
+  });
+}
 
 // Lazy-fade images once loaded (progressive enhancement on top of native loading="lazy")
 (function lazyFadeImages() {

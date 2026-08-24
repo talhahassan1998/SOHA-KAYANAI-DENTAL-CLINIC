@@ -31,13 +31,15 @@ html { scroll-behavior: smooth; }
 
   /* Brand hexes live here so the Tailwind config in base.html and this file cannot
      drift apart. Keep in sync with tailwind.config colors.primary / .gold / .secondary. */
-  --brand-primary: #1E2023;
-  /* The de-emphasis grey — light half of a two-tone heading. ~2:1 on white, so it is
-     display-type only (24px+). Named `gold` for parity with the Tailwind key. */
-  --brand-gold: #B1BDCA;
-  /* Use this, never --brand-gold, for small text on light backgrounds (AA at body size). */
-  --brand-gold-ink: #666666;
-  --brand-secondary: #EEF3F6;
+  --brand-primary: #0E7C86;
+  /* Coral accent — the warm half of a two-tone heading. Named `gold` for parity with
+     the Tailwind key. AA on white at body size, unlike the grey it replaced. */
+  --brand-gold: #E8734A;
+  /* Darker coral for small text where the base tone is marginal on light grounds. */
+  --brand-gold-ink: #C85729;
+  --brand-secondary: #F2E4D4;
+  /* Neutral ink kept separate from the brand hue — body copy must not go teal. */
+  --brand-ink: #1E2023;
 }
 
 /* Card hover lift */
@@ -163,13 +165,14 @@ html { scroll-behavior: smooth; }
 /* The signature move: one heading, two voices. Bold ink for the words that carry
    meaning, light grey for the connective ones — "Expert <b>care</b> for <em>every</em>
    smile". Grey is display-only (~2:1 on white); never use .hl-soft below 24px. */
-.hl-strong { font-weight: 500; color: var(--brand-primary); }
-/* #7F8E9F, not the reference's own #B1BDCA: that reads 1.91:1 on white and fails even the
-   3:1 large-text bar. This step clears 3:1 on the #EEF3F6 tint bands too, not just on
-   white. --brand-gold stays #B1BDCA for borders and decoration, where contrast is moot. */
-.hl-soft   { font-weight: 200; color: #7F8E9F; }
+/* Strong half stays near-black ink: at display size a full-teal headline over a
+   teal-accented page loses its hierarchy. Colour comes from the soft half instead. */
+.hl-strong { font-weight: 500; color: var(--brand-ink); }
+/* Teal, not the old #7F8E9F grey. #3E9BA4 clears 3:1 on white and on the pale tint
+   bands, so it stays legal at the 24px+ display sizes .hl-soft is restricted to. */
+.hl-soft   { font-weight: 200; color: #3E9BA4; }
 .dark .hl-strong { color: #FFFFFF; }
-.dark .hl-soft   { color: #6B7480; }
+.dark .hl-soft   { color: #6FC3CB; }
 
 /* Giant footer wordmark, clipped at the viewport edges. */
 .wordmark {
@@ -190,9 +193,11 @@ html { scroll-behavior: smooth; }
   font-size: .8rem; font-weight: 400; letter-spacing: .01em;
   transition: background-color var(--dur-hover-out) ease, transform var(--dur-hover-out) var(--ease-glide);
 }
-.btn-pill:hover { background: #000; transform: translateY(-2px); }
-.dark .btn-pill { background: #EEF3F6; color: #1E2023; }
-.dark .btn-pill:hover { background: #fff; }
+.btn-pill:hover { background: #0B646D; transform: translateY(-2px); }
+/* Dark mode keeps a teal fill rather than inverting to a white pill — an inverted
+   pill on a teal-accented page reads as a disabled state. */
+.dark .btn-pill { background: var(--brand-primary); color: #fff; }
+.dark .btn-pill:hover { background: #14A0AD; }
 
 /* Outline pill, for secondary actions. */
 .btn-pill-ghost {
@@ -236,19 +241,51 @@ html { scroll-behavior: smooth; }
 .dark .btn-circle { border-color: rgba(238, 243, 246, .28); color: #EEF3F6; }
 .dark .btn-circle:hover { background: #EEF3F6; color: #1E2023; }
 
-/* Hero implant: slow float, plus a scroll-linked drift set by main.js. */
-.hero-implant {
-  animation: float 7s ease-in-out infinite;
-  transform: translateY(var(--hero-drift, 0px));
-  will-change: transform;
+/* Hero implant: slow float on the image, scroll-linked drift on the wrapper. The
+   reference holds the render near-still while the headline scrolls past it — that
+   lag is `position: sticky` doing the work, not a JS scroll multiplier. */
+.hero-implant { animation: float 7s ease-in-out infinite; will-change: transform; }
+
+/* The clip ships on a solid white background, which otherwise reads as a grey plate
+   over the headline. `multiply` drops pure white to nothing so only the render shows.
+   Dark mode can't use it (multiply on a dark ground erases the clip), so there the
+   video is screened instead, which drops black and keeps the white geometry. */
+/* `multiply` clears the pure-white ground, but the clip's own soft grey floor shadow
+   never reaches white, so its bottom edge showed as a hard horizontal line across the
+   hero. Fade the last ~22% of the frame out so it dissolves into the page instead. */
+.hero-video {
+  mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 97%);
+  mask-image: linear-gradient(to bottom, #000 72%, transparent 97%);
 }
+/* Dark mode keeps `multiply` too, which means it needs a light ground to knock the
+   clip's white background out against. Tested `screen`, `lighten` and `invert+screen`
+   on charcoal — all leave a visible plate, because the clip is a light subject on pure
+   white and no blend separates those two on a dark page. So the hero keeps a light
+   panel in dark mode; the render is the section's focal point and reads correctly on it. */
+.dark .hero-implant-shift {
+  background: #EEF3F6;
+  /* Feather the panel edges so it reads as a glow behind the render rather than a
+     hard rectangle cutting through the headline. */
+  -webkit-mask-image: radial-gradient(ellipse 68% 62% at 50% 50%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 68% 62% at 50% 50%, #000 55%, transparent 100%);
+}
+
 /* The float keyframe and the drift variable fight over `transform`, so the wrapper
    carries the scroll offset and the inner element carries the loop. */
-.hero-implant-shift { transform: translate3d(0, var(--hero-drift, 0px), 0); will-change: transform; }
+.hero-implant-shift {
+  position: sticky;
+  top: 12vh;
+  transform: translate3d(0, var(--hero-drift, 0px), 0);
+  will-change: transform;
+}
+
 
 /* Portrait treatment for patient/doctor photos — the reference is entirely B&W. */
-.portrait-mono { filter: grayscale(1) contrast(1.04); transition: filter .6s var(--ease-glide); }
-.group:hover .portrait-mono, .portrait-mono:hover { filter: grayscale(0) contrast(1); }
+/* Photos now run in full colour — the desaturation sweep belonged to the monochrome
+   theme. Class kept (it is on ~20 templates) so it just carries the hover warmth now. */
+.portrait-mono { filter: saturate(1.02); transition: filter .6s var(--ease-glide); }
+.group:hover .portrait-mono, .portrait-mono:hover { filter: saturate(1.12); }
 
 /* Numerals in stat counters and prices: tabular so they stop jittering mid-count. */
 .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
@@ -383,7 +420,7 @@ img.lazy-fade.loaded {
   /* Reference design language: kill the hero float and its scroll-linked drift, freeze
      the list-row arrow and circular buttons, and drop the portrait desaturation sweep. */
   .hero-implant { animation: none; transform: none; }
-  .hero-implant-shift { transform: none; }
+  .hero-implant-shift { position: static; transform: none; }
   .list-row, .list-row .list-arrow { transition: none; }
   .list-row:hover .list-arrow { transform: none; }
   .btn-pill, .btn-pill-ghost, .btn-circle { transition: none; }

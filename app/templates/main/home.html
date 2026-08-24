@@ -12,17 +12,30 @@
 <!-- Hero: the implant render floats centre-stage and the headline wraps around it, with the
      supporting copy pinned to the lower corners. Negative top margin cancels the sticky
      navbar height (h-16 / lg:h-20) so the section runs to the very top of the page. -->
-<section class="relative bg-white dark:bg-primary-900 overflow-hidden -mt-16 lg:-mt-20">
+{# No `overflow-hidden` here: any overflow clip on an ancestor silently kills the
+   implant's `position: sticky`. Horizontal bleed is contained by the inner wrapper. #}
+<section class="relative bg-white dark:bg-primary-900 -mt-16 lg:-mt-20">
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 lg:pt-40 lg:pb-24">
 
-    <!-- Implant render, centred behind the type. The wrapper carries the scroll-linked
-         drift (set by main.js); the inner element carries the idle float loop. -->
-    <div class="hero-implant-shift pointer-events-none absolute left-1/2 -translate-x-1/2 top-52 lg:top-56 w-[58%] sm:w-[42%] lg:w-[30%] max-w-sm z-0">
-      {# Transparent PNG, so it composites cleanly on both the white and the ink ground —
-         no blend mode, which is what put a black plate behind it in dark mode. #}
-      <img src="{{ url_for('static', filename='images/hero-implant.png') }}"
-           alt="Dental implant with ceramic crown"
-           class="hero-implant relative w-full h-auto drop-shadow-[0_30px_50px_rgba(30,32,35,0.18)]">
+    <!-- Implant render, centred behind the type. The wrapper is sticky so the render
+         holds while the headline scrolls past it (the reference's depth cue); it also
+         carries the scroll-linked drift set by main.js. Inner img carries the float loop.
+         Zero-height host keeps the sticky box from adding layout height of its own. -->
+    <div class="hero-implant-track pointer-events-none absolute inset-x-0 top-40 lg:top-44 bottom-0 z-0">
+      {# Wider than the old portrait PNG: the clip is 16:9, so it needs the extra width
+         to render the jaw at a legible size. #}
+      <div class="hero-implant-shift mx-auto w-[88%] sm:w-[70%] lg:w-[52%] max-w-2xl">
+        <div class="relative">
+          {# Looping 3D clip — the crown seating onto the post. Replaces the still PNG and
+             its CSS fake-spin; `muted` + `playsinline` are what let it autoplay on mobile.
+             Poster covers the pre-decode frame so the hero never flashes empty. #}
+          <video class="hero-implant hero-video relative w-full h-auto"
+                 src="{{ url_for('static', filename='video/hero-implant.mp4') }}"
+                 poster="{{ url_for('static', filename='images/hero-implant-poster.jpg') }}"
+                 autoplay loop muted playsinline preload="metadata"
+                 aria-label="3D animation of a dental implant crown seating onto its post"></video>
+        </div>
+      </div>
     </div>
 
     <!-- Headline sits above the render; the middle line is pushed aside so the implant
