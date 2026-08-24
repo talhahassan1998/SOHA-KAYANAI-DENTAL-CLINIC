@@ -1,25 +1,25 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import service_icon, service_card, btn, deco_arcs, deco_sparkle, deco_blob %}
+{% from "partials/macros.html" import service_icon, service_card, btn, deco_arcs, deco_blob %}
 {% block title %}{{ service.name }} — {{ clinic_name }}{% endblock %}
 {% block meta_description %}{{ service.short_description }}{% endblock %}
 
 {% block content %}
-<section class="relative overflow-hidden isolate bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 py-16 lg:py-20">
-  {{ deco_arcs(corner='bl', size='w-[26rem] h-[26rem]') }}
-  {{ deco_blob(pos='-right-28 -top-28', size='w-[28rem] h-[28rem]') }}
+<section class="relative overflow-hidden isolate ambient bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-ink-900 dark:via-ink-900 dark:to-ink-800 py-16 lg:py-20">
+  {{ deco_arcs(corner='bl', size='w-[26rem] h-[26rem]', parallax=28) }}
+  {{ deco_blob(pos='-right-28 -top-28', size='w-[28rem] h-[28rem]', parallax=-22, float=true) }}
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
     <div class="reveal reveal-left">
       <nav class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-        <a href="{{ url_for('services.list_services') }}" class="hover:text-primary transition-colors">Services</a> / <span class="text-slate-700 dark:text-slate-200">{{ service.name }}</span>
+        <a href="{{ url_for('services.list_services') }}" class="hover:text-primary-700 dark:hover:text-primary-400 transition-colors">Services</a> / <span class="text-slate-700 dark:text-slate-200">{{ service.name }}</span>
       </nav>
-      <div class="w-12 h-12 rounded-xl bg-primary text-white grid place-items-center mb-5 shadow-soft hover:scale-110 hover:rotate-6 transition-transform duration-300">
+      <div class="w-12 h-12 rounded-xl bg-primary text-ink-900 grid place-items-center mb-5 shadow-glow-primary hover:scale-110 hover:rotate-6 transition-transform duration-300">
         {{ service_icon(service.icon_name) }}
       </div>
       <h1 class="font-heading text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-wide">{{ service.name }}</h1>
       <p class="mt-4 text-slate-500 dark:text-slate-400 leading-relaxed">{{ service.full_description }}</p>
       {{ btn('Book This Treatment', url_for('appointments.book'), size='lg', extra='mt-8') }}
     </div>
-    <div class="reveal reveal-right group rounded-[2rem] overflow-hidden shadow-soft hover:shadow-lg aspect-[4/3] transition-shadow duration-500">
+    <div class="reveal reveal-right group rounded-[2rem] overflow-hidden shadow-depth-3 hover:shadow-depth-4 aspect-[4/3] transition-shadow duration-500">
       <img src="{{ service.image_url }}" alt="{{ service.name }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
     </div>
   </div>

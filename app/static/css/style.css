@@ -4,8 +4,14 @@
    raw-CSS rules below (selection, focus ring, nav underline) can't drift from
    the utility classes. Update both together. */
 :root {
-  --brand-primary: #0B74D1;
-  --brand-secondary: #14B8A6;
+  --brand-primary: #22D3EE;
+  --brand-secondary: #8B5CF6;
+  --brand-ink: #05070F;
+  /* Text-safe steps. #22D3EE is 1.81:1 on white and #8B5CF6 is 4.23:1, so neither
+     500 can carry body text on a light surface — these 700s (5.56:1 / 7.10:1) are
+     what raw-CSS rules must use wherever text sits on white. */
+  --brand-primary-ink: #0B7288;
+  --brand-secondary-ink: #6D28D9;
 }
 
 html { scroll-behavior: smooth; }
@@ -30,6 +36,26 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 20px 40px -12px rgba(15, 23, 42, .18);
 }
 .dark .hover-lift:hover { box-shadow: 0 20px 40px -12px rgba(0, 0, 0, .45); }
+
+/* Hover-loop fix, for .hover-lift cards that sit inside a tilt scene.
+   .tilt is the element the pointer tracking hit-tests against, so a lift that
+   moves the card also moves the hit target: with the cursor held still near the
+   bottom edge, translateY(-6px) slides the card out from under it -> pointerout
+   -> the lift reverts -> the card drops back under the cursor -> pointerover,
+   repeating. Measured at the bottom edge, cursor stationary for 1.5s:
+   9 hover events with the lift, 1 without it.
+
+   Dropping the destination alone is not enough — .hover-lift transitions
+   `transform`, so animating translateY(-6px) -> none still moves the card for the
+   full .35s. The transform transition has to go too.
+
+   No depth is lost: .tilt already carries translateZ(10px), the same
+   toward-the-viewer movement expressed in the 3D layer that owns it, and unlike
+   translateY it does not change the element's hit box. Shadow and border still
+   fade. Cards outside a .scene are untouched and keep the original lift. */
+.scene .hover-lift.hover-lift:hover { transform: none; }
+.scene .hover-zoom.hover-zoom:hover { transform: scale(1.03); }
+.scene .hover-lift { transition-property: box-shadow, border-color; }
 
 /* Opt-in zoom, used alongside .hover-lift. */
 .hover-zoom.hover-zoom:hover { transform: translateY(-6px) scale(1.03); }
@@ -63,7 +89,7 @@ html { scroll-behavior: smooth; }
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(160deg, transparent 42%, rgba(11, 116, 209, .12) 100%);
+  background: linear-gradient(160deg, transparent 42%, rgba(34, 211, 238, .12) 100%);
   opacity: 0;
   transition: opacity .45s ease;
   z-index: -1;
@@ -71,7 +97,7 @@ html { scroll-behavior: smooth; }
 .card-sheen:hover::before { transform: scaleX(1); }
 .card-sheen:hover::after  { opacity: 1; }
 .dark .card-sheen::after {
-  background: linear-gradient(160deg, transparent 45%, rgba(20, 184, 166, .12) 100%);
+  background: linear-gradient(160deg, transparent 45%, rgba(139, 92, 246, .14) 100%);
 }
 
 /* Testimonial cards lead with the secondary colour, so flip the gradient direction
@@ -80,7 +106,7 @@ html { scroll-behavior: smooth; }
   background: linear-gradient(90deg, var(--brand-secondary), var(--brand-primary));
 }
 .card-sheen--secondary::after {
-  background: linear-gradient(160deg, transparent 45%, rgba(20, 184, 166, .08) 100%);
+  background: linear-gradient(160deg, transparent 45%, rgba(139, 92, 246, .10) 100%);
 }
 
 /* Decorative dot grid used by the deco_dots macro. Masked so it fades out at the
@@ -88,11 +114,11 @@ html { scroll-behavior: smooth; }
 .deco-dots {
   background-image: radial-gradient(currentColor 1px, transparent 1px);
   background-size: 18px 18px;
-  color: rgba(11, 116, 209, .32);
+  color: rgba(34, 211, 238, .38);
   -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 72%);
   mask-image: radial-gradient(ellipse at center, #000 30%, transparent 72%);
 }
-.dark .deco-dots { color: rgba(20, 184, 166, .3); }
+.dark .deco-dots { color: rgba(139, 92, 246, .34); }
 
 /* FAQ accordion panel.
    Animating `height` requires knowing the content height in advance; animating a
@@ -125,15 +151,19 @@ html { scroll-behavior: smooth; }
   .faq-panel__inner { transition: none; }
 }
 
-/* Glassmorphism utility */
+/* Glassmorphism, tier 1 of 3 — see the tier note in the 3D section below.
+   This is the only tier that uses a real backdrop-filter, which forces the
+   compositor to re-read everything behind it every frame. Budget: at most TWO
+   visible at once (currently the navbar and the hero badge). Use .glass-card
+   for anything that appears in a grid. */
 .glass {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
 }
 .dark .glass {
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(12, 18, 32, 0.58);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -187,6 +217,129 @@ img.lazy-fade.loaded {
 .reveal.reveal-left.in-view,
 .reveal.reveal-right.in-view { opacity: 1; transform: translateX(0); }
 .reveal.reveal-scale.in-view { opacity: 1; transform: scale(1); }
+
+/* 3D entrance: the card swings in around its own X axis, as if hinged at the
+   bottom edge and falling into place. perspective is baked into the transform
+   (not inherited from a .scene parent) so this variant works on any element
+   without needing a wrapper — .reveal is L1 and owns this transform outright.
+
+   -8deg, not more: past ~10deg the type on the card face shears visibly during
+   the swing, which reads as a rendering glitch rather than as depth. */
+.reveal.reveal-3d {
+  transform: perspective(1200px) rotateX(-8deg) translateY(48px) scale(.97);
+  transform-origin: 50% 100%;
+}
+/* Resting state is `none`, not an identity 3D transform. Keeping perspective() in
+   the settled state left every card a permanent 3D/containing context — a stray
+   m34 in the matrix, its own compositing layer, and a nested perspective around
+   any .scene inside it. `none` is reached by the same transition (the browser
+   interpolates to the identity matrix), so the entrance animation is unchanged. */
+.reveal.reveal-3d.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* Same idea on the Y axis, for items entering from the side of a row — the panel
+   turns to face you. Paired with .stagger this reads as a hand of cards fanning
+   open, which is the effect modern sites use for feature rows. */
+.reveal.reveal-3d-y {
+  transform: perspective(1200px) rotateY(-12deg) translateX(-40px);
+  transform-origin: 0% 50%;
+}
+.reveal.reveal-3d-y.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* Rise + settle: the reference's card entrance. Slightly larger travel than the
+   base .reveal with a gentle scale, so cards arrive with a bit of depth instead
+   of sliding flat. Filter is animated too — a 4px blur clearing as it lands is
+   what reads as "expensive" — but blur is the one property here that can cost
+   frames, so it is kept small and only used on card grids, never full sections. */
+.reveal.reveal-rise {
+  transform: translateY(54px) scale(.96);
+  filter: blur(4px);
+  transition-property: opacity, transform, filter;
+}
+/* Settles to `none`, not to an identity transform. Four card macros put
+   .reveal-rise and .scene on the SAME element, and a transform on the scene makes
+   it a containing block that flattens the 3D of the .tilt inside it — the pointer
+   tilt then renders as a plain 2D skew. Verified side by side: a services card
+   read `sceneTransform: matrix(1,0,0,1,0,0)` while a working card read `none`,
+   for identical inline rotateX/rotateY values. Same fix as .reveal-3d above. */
+.reveal.reveal-rise.in-view {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+/* Cinematic hero: full-bleed video with the copy in a frosted panel over it.
+   min-height is capped by vh so the hero can't push the booking CTA off a laptop
+   screen — 100vh heroes look impressive and cost conversions. */
+.hero-cinematic {
+  min-height: min(88vh, 780px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* The media layer drifts on scroll via --parallax-y, so it is deliberately taller
+   than its container and pulled up by half the overflow — otherwise the drift
+   would expose a hard edge at the top or bottom of the hero. */
+.hero-media {
+  top: -60px;
+  bottom: -60px;
+  transform: translate3d(0, var(--parallax-y, 0), 0);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-media { transform: none; }
+}
+
+/* The panel is deliberately MORE opaque than .glass: its text sits over moving
+   footage, and a bright frame passing under a 62%-alpha panel drops body copy
+   under the 4.5:1 contrast floor. Readability wins over the prettier blur. */
+.glass-hero {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px) saturate(135%);
+  -webkit-backdrop-filter: blur(20px) saturate(135%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 8px 16px rgba(5,7,15,.06), 0 32px 72px -16px rgba(5,7,15,.20);
+}
+.dark .glass-hero {
+  background: rgba(12, 18, 32, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+/* Without backdrop-filter support the panel would be see-through over video, so
+   fall back to a near-solid fill rather than unreadable text. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-hero { background: rgba(255, 255, 255, 0.95); }
+  .dark .glass-hero { background: rgba(12, 18, 32, 0.95); }
+}
+
+/* Hide the scrollbar on the hero's horizontally-scrolling icon row — the row is
+   short and snap-scrolled, so the bar adds height without adding information.
+   Scrolling itself stays fully available (touch, wheel, keyboard). */
+.scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Hero video, now a full-bleed background layer. The <img> after it is a fallback
+   in the same box: normally hidden, it takes over when the OS asks for reduced
+   motion — a looping autoplay clip is exactly what that setting exists to suppress.
+   Both fill .hero-media absolutely so the section's min-height drives the box. */
+.hero-video,
+.hero-video-fallback {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+.hero-video-fallback { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-video { display: none; }
+  .hero-video-fallback { display: block; }
+}
 
 /* Success checkmark on the booking confirmation: the badge pops, then the tick draws itself. */
 @keyframes successPop {
@@ -292,10 +445,17 @@ img.lazy-fade.loaded {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Focus visibility for accessibility */
+/* Violet, not cyan: #8B5CF6 stays visible against both white and ink, whereas a
+   cyan ring on white is 1.81:1 and effectively invisible. Offset raised to 3px so
+   the ring clears the new elevated card shadows instead of blending into them. */
 a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
   outline: 2px solid var(--brand-secondary);
-  outline-offset: 2px;
+  outline-offset: 3px;
   border-radius: 4px;
+}
+.dark a:focus-visible, .dark button:focus-visible, .dark input:focus-visible,
+.dark textarea:focus-visible, .dark select:focus-visible {
+  outline-color: #A78BFA; /* violet-400, 7.39:1 on ink-900 */
 }
 
 /* Custom select styling: reset native arrow, add themed chevron + option colors */
@@ -318,11 +478,416 @@ select.form-select option {
   padding: 0.5rem;
 }
 .dark select.form-select option {
-  background-color: #1e293b;
+  background-color: #0C1220;
   color: #e2e8f0;
 }
+/* primary-700, not the 500: this pairs with white text, and #22D3EE would be
+   1.81:1 against it. */
 select.form-select option:checked,
 select.form-select option:hover {
-  background-color: #0B74D1;
+  background-color: #0B7288;
   color: #ffffff;
+}
+
+/* ============================================================================
+   3D / DEPTH LAYER
+
+   THE ONE RULE: an element may have exactly one `transform` consumer.
+
+   `transform` is a single CSS property, so a second rule targeting the same
+   element REPLACES the first rather than composing with it — and does so
+   silently, with no error. This file already carries two bug fixes from exactly
+   that collision (the doubled `.hover-lift.hover-lift` selector, and the doubled
+   `.reveal.reveal-*` variants, both documented above). Tilt and parallax would
+   have been the fourth and fifth consumers, so instead of stacking them they get
+   their own DOM layers:
+
+     L1  .reveal          scroll-entry travel  (+ opacity)
+     L2  .scene           perspective only — owns NO transform
+     L3  .tilt            pointer tilt, written by JS as an inline style
+     L4  .hover-lift      hover lift/zoom, shadow, border
+     L5  .tilt-pop        static translateZ inside the preserve-3d chain
+
+   L1 and L2 may share an element, since L2 sets no transform. L3 and L4 must
+   NOT. The JS writes an inline style, which outranks every class rule here, so
+   `.reveal.in-view { transform: none }` cannot cancel a tilt — and a tilt cannot
+   cancel the hover lift, which lives one element deeper.
+   ============================================================================ */
+
+.scene {
+  perspective: 1100px;
+  perspective-origin: 50% 50%;
+}
+
+.tilt {
+  transform-style: preserve-3d;
+  /* Carries the card home on pointerleave. While tracking, the JS sets
+     transition:none so the card follows the cursor instead of lagging it. */
+  transition: transform .5s cubic-bezier(.22, .61, .36, 1);
+}
+
+/* Children that sit forward of the card face. Static translateZ — no JS, so it
+   can never race the inline transform the JS writes on the .tilt parent. */
+.tilt-pop { transform: translateZ(28px); }
+.tilt-pop-sm { transform: translateZ(14px); }
+
+/* Continuous 3D drift for a single hero accent. Unlike .tilt this needs no
+   pointer, so it is the one depth cue that also works on touch (the skill flags
+   hover-only 3D as a High-severity mobile failure). Rotation stays under 4deg
+   and the loop is long, so it reads as "floating in space" rather than as a
+   spinning widget competing with the booking CTA.
+
+   Own DOM layer, per the L1-L5 rule: this animates `transform`, so it must not
+   share an element with .tilt, .hover-lift, or a .reveal. */
+@keyframes float3d {
+  0%, 100% { transform: perspective(900px) rotateX(0deg) rotateY(0deg) translate3d(0, 0, 0); }
+  25%      { transform: perspective(900px) rotateX(2.4deg) rotateY(-3.2deg) translate3d(0, -9px, 22px); }
+  50%      { transform: perspective(900px) rotateX(-1.6deg) rotateY(1.8deg) translate3d(0, 4px, 8px); }
+  75%      { transform: perspective(900px) rotateX(-2.8deg) rotateY(3.4deg) translate3d(0, -5px, 18px); }
+}
+.float-3d {
+  animation: float3d 14s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-3d { animation: none; transform: none; }
+}
+
+/* Glass tier 2: the grid workhorse. A 160deg gradient plus an inset top highlight
+   reproduces the "lit from above, has thickness" read of real glass with zero
+   compositing cost. This is what the card macros use, and it is the reason a
+   40-card grid still scrolls at 60fps while tier 1 would not. */
+.glass-card {
+  background-image: linear-gradient(160deg, rgba(255,255,255,.95) 0%, rgba(255,255,255,.80) 100%);
+  background-color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+}
+.dark .glass-card {
+  background-image: linear-gradient(160deg, rgba(21,28,45,.96) 0%, rgba(12,18,32,.92) 100%);
+  background-color: #0C1220;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* Glass tier 3: barely-there, for strips and pills over an already-solid bg. */
+.glass-quiet { background: rgba(255,255,255,.55); }
+.dark .glass-quiet { background: rgba(21,28,45,.55); }
+
+/* Ambient light. Animates background-position across a 400%-sized gradient: no
+   layout, no new geometry painted, and it composites cheaply. The 400% sizing is
+   what gives the gradient somewhere to travel. Budget: 2 per page. */
+.ambient {
+  background-image: linear-gradient(120deg,
+    rgba(34,211,238,.16) 0%, rgba(139,92,246,.14) 35%,
+    rgba(34,211,238,.10) 65%, rgba(139,92,246,.16) 100%);
+  background-size: 400% 400%;
+  animation: aurora 22s ease-in-out infinite;
+}
+.dark .ambient {
+  background-image: linear-gradient(120deg,
+    rgba(34,211,238,.13) 0%, rgba(139,92,246,.15) 35%,
+    rgba(34,211,238,.08) 65%, rgba(139,92,246,.13) 100%);
+}
+/* Declared here as well as in the Tailwind config: the config drives the
+   `animate-aurora` utility, this drives the .ambient class. */
+@keyframes aurora {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ============================================================================
+   DIMENSIONAL LAYERING
+   The skill rates `3d-and-hyperrealism` (WebGL/Three.js) cost:high risk:high and
+   scopes it to gaming/VR; `dimensional-layering` is cost:low and scoped to card
+   layouts, which is what this site is. So depth here is built from elevation +
+   translateZ + parallax rather than a 3D engine — no library, no new bytes of JS.
+
+   Per the L1-L5 rule above, every class here that writes `transform` is meant for
+   its OWN element. Do not combine .depth-card with .tilt or .hover-lift.
+   ============================================================================ */
+
+/* A card that physically rises toward the viewer on hover: real Z translation
+   inside a perspective context, with the shadow growing to match. The shadow is
+   what sells it — Z motion alone reads as a scale, but shadow + Z reads as
+   "lifting off the page". */
+.depth-card {
+  transform: translateZ(0);
+  transition: transform .45s cubic-bezier(.22,.61,.36,1), box-shadow .45s ease;
+}
+.scene:hover .depth-card,
+.depth-card:hover {
+  transform: translateZ(38px);
+  box-shadow: 0 12px 24px rgba(5,7,15,.10), 0 40px 80px -20px rgba(5,7,15,.30);
+}
+
+/* NOTE: layered scroll depth is already covered by `.parallax` + data-parallax
+   below — varying the per-element data-parallax value IS the layer speed, which
+   is what the skill means by "vary speed per layer". No extra classes needed. */
+
+@media (prefers-reduced-motion: reduce) {
+  .depth-card { transform: none !important; transition: none; }
+  .scene:hover .depth-card, .depth-card:hover { transform: none; }
+}
+
+/* Glow rides on box-shadow, which paints outside the border box, so it can never
+   reduce the contrast of the text inside.
+
+   It does NOT stack freely with .hover-lift, despite touching no transform: both
+   set `box-shadow` on :hover, and box-shadow is a single property, so the winner
+   replaces the loser outright. .hover-lift is doubled (0,2,0 -> higher specificity)
+   and was silently eating the glow on all 7 cards that carry both classes — the
+   violet glow never rendered anywhere. Same class of bug as the transform
+   collisions documented at the top of this file, just on a different property.
+
+   Fix: the glow declarations carry the lift's depth shadow too, so one
+   declaration paints both and neither rule has to win. The paired selector is
+   doubled to outrank .hover-lift.hover-lift.
+
+   --glow-lift is the lift's own shadow, kept in a variable so the two rules can
+   never drift apart. */
+:root { --glow-lift: 0 20px 40px -12px rgba(15, 23, 42, .18); }
+.dark { --glow-lift: 0 20px 40px -12px rgba(0, 0, 0, .45); }
+
+/* box-shadow only. border-color is handled by the Tailwind transition-colors
+   already on these cards, and transform is .hover-lift's job — listing either
+   here would add a second, differently-timed animation of the same property. */
+.glow-on-hover { transition: box-shadow .35s ease, border-color .35s ease; }
+.glow-on-hover:hover {
+  box-shadow: 0 0 0 1px rgba(34,211,238,.30), 0 10px 36px -8px rgba(34,211,238,.42);
+}
+.glow-on-hover--violet:hover {
+  box-shadow: 0 0 0 1px rgba(139,92,246,.30), 0 10px 36px -8px rgba(139,92,246,.42);
+}
+.dark .glow-on-hover:hover {
+  box-shadow: 0 0 0 1px rgba(34,211,238,.34), 0 10px 40px -8px rgba(34,211,238,.30);
+}
+
+/* Paired with .hover-lift: paint the lift shadow AND the glow in one shot. */
+.hover-lift.glow-on-hover.glow-on-hover:hover {
+  box-shadow: var(--glow-lift), 0 0 0 1px rgba(34,211,238,.30), 0 10px 36px -8px rgba(34,211,238,.42);
+}
+.hover-lift.glow-on-hover--violet.glow-on-hover--violet:hover {
+  box-shadow: var(--glow-lift), 0 0 0 1px rgba(139,92,246,.30), 0 10px 36px -8px rgba(139,92,246,.42);
+}
+.dark .hover-lift.glow-on-hover.glow-on-hover:hover {
+  box-shadow: var(--glow-lift), 0 0 0 1px rgba(34,211,238,.34), 0 10px 40px -8px rgba(34,211,238,.30);
+}
+
+/* Parallax. The JS writes --parallax-y rather than a transform directly, so a
+   decoration can carry `animate-drift` at the same time — two direct writes to
+   `transform` would cancel each other, one CSS var and one keyframe do not.
+   Budget: 6 per page (each costs a layout read per frame). */
+.parallax {
+  transform: translate3d(0, var(--parallax-y, 0px), 0);
+  will-change: transform;
+}
+
+/* Depth-aware entry variant. Doubled selector for the same reason as the
+   directional variants above: it has to outrank the plain .reveal pair. */
+.reveal.reveal-depth {
+  transform: perspective(900px) translate3d(0, 44px, -90px);
+}
+.reveal.reveal-depth.in-view {
+  opacity: 1;
+  transform: perspective(900px) translate3d(0, 0, 0);
+}
+
+/* Touch and coarse pointers: there is no cursor to follow, so tilt is dead
+   weight. The JS skips binding entirely; this guarantees nothing is left stuck
+   mid-transform if a device reports hover capability inconsistently. */
+@media (hover: none), (pointer: coarse) {
+  .tilt { transform: none !important; transition: none; }
+  .scene { perspective: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The global `*` rule above flattens transition and animation DURATIONS, but it
+     cannot neutralise a static transform or one written inline by JS — both are
+     handled explicitly here. `.tilt[style]` with !important is what beats the
+     inline style; the JS also early-returns on this preference and never writes
+     one in the first place, so this is the belt to that pair of braces. */
+  .tilt,
+  .tilt[style] {
+    transform: none !important;
+    transition: none !important;
+  }
+  .tilt-pop, .tilt-pop-sm { transform: none; }
+  .scene { perspective: none; }
+  .parallax { transform: none !important; }
+  .ambient { animation: none; background-position: 0% 50%; }
+  .reveal.reveal-depth,
+  .reveal.reveal-depth.in-view { opacity: 1; transform: none; }
+  .glow-on-hover { transition: none; }
+
+  /* The attribute selectors in the block above match Tailwind's named utilities
+     (hover:scale-*, hover:rotate-*) but NOT arbitrary-value 3D ones, which are
+     spelled differently. Catch those here. */
+  [class*="rotateX"], [class*="rotateY"], [class*="translateZ"],
+  [class*="hover:[transform"] { transform: none !important; }
+}
+
+/* ============================================================================
+   PROCESS STEPS — the "how it works" strip animating one step at a time.
+
+   Sequencing is NOT new machinery: the strip is already a .stagger container, so
+   main.js writes --reveal-delay per item and the IntersectionObserver adds
+   .in-view. This file only supplies the per-step look; the "one by one" cadence
+   falls out of the cascade that already exists.
+
+   Per the L1-L5 rule above, each moving part gets its own DOM layer:
+     L1  .reveal.reveal-step   the card's Y-axis swing (owns the transform)
+     L3  .step-icon            icon pop, one element deeper
+   The swing must never share an element with .tilt or .hover-lift.
+   ========================================================================== */
+
+/* The step column itself only fades — all the motion people actually read is in
+   the ring below, which expands from a dot on the rail. Keeping the column's own
+   transform out of the way means the ring is the single thing drawing the eye,
+   which is what the reference timeline does. Doubled selector to outrank the
+   plain .reveal / .reveal.in-view pair, same as every other variant here. */
+.reveal.reveal-step {
+  transform: none;
+}
+.reveal.reveal-step.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* Dot -> ring. The step starts as a small solid dot sitting on the rail and
+   scales up into a full bordered circle, so the row reads as the track "opening
+   up" one stop at a time rather than four things fading in.
+
+   The 3D is in the arrival, not a spin: a little Z push with the scale reads as
+   the ring lifting off the rail toward the viewer. transform-origin stays centred
+   so it grows around its own point on the line. */
+.reveal-step .step-ring {
+  transform: perspective(900px) scale(.18) translateZ(-60px);
+  opacity: .55;
+  box-shadow: 0 0 0 0 rgba(34, 211, 238, .45);
+  transition-property: transform, opacity, box-shadow;
+  transition-duration: .85s;
+  transition-timing-function: cubic-bezier(.34, 1.4, .64, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal-step.in-view .step-ring {
+  transform: perspective(900px) scale(1) translateZ(0);
+  opacity: 1;
+}
+
+/* The gradient ring border. A conic/linear gradient cannot be a border-color, so
+   it is painted as a background and masked to the border box only — this keeps a
+   true 2px ring with the card's own background showing through the middle.
+   Separate element (::before) so it never competes for .step-ring's transform. */
+.step-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  padding: 2px;
+  background: linear-gradient(140deg, var(--brand-primary, #22D3EE), var(--brand-secondary, #8B5CF6));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  opacity: .55;
+  transition: opacity .3s ease;
+}
+.group:hover .step-ring::before { opacity: 1; }
+
+/* Icon and number ride in just behind their ring, so the ring lands first and the
+   contents settle into it. Both inherit the same --reveal-delay as the ring. */
+.reveal-step .step-ring__icon,
+.reveal-step .step-ring__num {
+  opacity: 0;
+  transition-property: opacity, transform;
+  transition-duration: .45s;
+  transition-timing-function: cubic-bezier(.34, 1.56, .64, 1);
+  transition-delay: calc(var(--reveal-delay, 0ms) + .42s);
+}
+.reveal-step:not(.in-view) .step-ring__icon { transform: scale(.6); }
+.reveal-step:not(.in-view) .step-ring__num  { transform: scale(0); }
+.reveal-step.in-view .step-ring__icon,
+.reveal-step.in-view .step-ring__num { opacity: 1; }
+
+/* Caption fades up under its ring, last in the per-step sequence. */
+.reveal-step .step-label {
+  opacity: 0;
+  transition-property: opacity, transform;
+  transition-duration: .5s;
+  transition-timing-function: cubic-bezier(.22, .61, .36, 1);
+  transition-delay: calc(var(--reveal-delay, 0ms) + .52s);
+}
+.reveal-step:not(.in-view) .step-label { transform: translateY(10px); }
+.reveal-step.in-view .step-label { opacity: 1; }
+
+/* Ring lifts on hover. Own consumer of transform on .step-ring, so it is written
+   here rather than as a Tailwind hover: utility that would collide with the
+   entrance transform above. */
+.group:hover .reveal-step.in-view .step-ring,
+.reveal-step.in-view:hover .step-ring {
+  transform: perspective(900px) scale(1.06) translateZ(12px);
+  box-shadow: 0 0 0 10px rgba(34, 211, 238, .10);
+}
+
+/* Connector: draws itself left-to-right once the strip is in view.
+
+   The element needs .reveal to be observed at all (main.js only watches .reveal),
+   but .reveal brings its own `transform: translateY(40px)` at the SAME (0,2,0)
+   specificity as a bare `.step-connector` — and it is declared earlier in this
+   file, so on a tie it used to win and the line slid down instead of drawing.
+   Doubling the class to (0,4,0) is the same fix already applied to .hover-lift
+   and the .reveal-* variants above. Verified in-browser: the computed transform
+   is now a scaleX matrix, not a translate.
+
+   It is also the sole .stagger child with no .reveal descendant of its own, so it
+   takes a delay slot but the four steps still cascade in order after it. */
+.step-connector.step-connector {
+  transform: scaleX(0);
+  transform-origin: 0% 50%;
+  transition-property: transform;
+  /* Paced to span the whole sequence (4 steps x 1100ms), so the rail is still
+     drawing toward step N+1 as step N finishes — it reads as the line leading the
+     walkthrough forward rather than completing before the steps have started.
+     Linear, because a decelerating rail against evenly-spaced steps looks lagged. */
+  transition-duration: 4.4s;
+  transition-timing-function: linear;
+  /* The rail is the first .reveal in the container, so the cascade hands it delay
+     slot 0 and every step shifts one slot later. It should start with step 1, not
+     before it, so its own delay is pinned to zero here — `.stagger .reveal` sets
+     transition-delay from the variable at (0,2,0), and this doubled selector is
+     (0,4,0), so this wins without needing !important. */
+  transition-delay: 0ms;
+}
+.step-connector.step-connector.in-view { transform: scaleX(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal.reveal-step,
+  .reveal.reveal-step.in-view { opacity: 1; transform: none; transition: none; }
+  /* Everything lands at its end state with no travel: rings full size, contents
+     and captions visible. Selectors mirror the animated ones above so each wins
+     its tie. */
+  .reveal-step .step-ring,
+  .reveal-step.in-view .step-ring,
+  .reveal-step.in-view:hover .step-ring,
+  .group:hover .reveal-step.in-view .step-ring {
+    opacity: 1; transform: none; box-shadow: none; transition: none;
+  }
+  .reveal-step .step-ring__icon,
+  .reveal-step .step-ring__num,
+  .reveal-step .step-label,
+  .reveal-step:not(.in-view) .step-ring__icon,
+  .reveal-step:not(.in-view) .step-ring__num,
+  .reveal-step:not(.in-view) .step-label {
+    opacity: 1; transform: none; transition: none;
+  }
+  /* Doubled to match the rule above — a single class loses to .reveal here too. */
+  .step-connector.step-connector,
+  .step-connector.step-connector.in-view { transform: scaleX(1); transition: none; }
+}
+
+/* Loop rewind (see data-stagger-loop in main.js): suppress transitions for the
+   single frame the strip is snapped back to its start state, so a replay reads as
+   restarting rather than playing the build in reverse. */
+.stagger-resetting *,
+.stagger-resetting *::before {
+  transition: none !important;
 }

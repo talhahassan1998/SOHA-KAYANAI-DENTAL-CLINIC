@@ -22,7 +22,19 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&display=swap" rel="stylesheet">
+
+<script>
+  /* Alpine (below) is deferred, so the `dark` class isn't applied until after the
+     first paint. On the near-black ink palette that reads as a white flash on
+     every navigation, so apply it here, synchronously, before anything renders.
+     Alpine's x-data reads the same localStorage key and stays in sync from there;
+     its `:class` object syntax only touches the keys it names, so re-asserting
+     `dark` on boot is a no-op rather than a conflict. */
+  try {
+    if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+  } catch (e) {}
+</script>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -31,24 +43,70 @@
     theme: {
       extend: {
         colors: {
-          primary: { DEFAULT: '#0B74D1', 50: '#EAF3FC', 100: '#D0E5F8', 200: '#A1CBF1', 300: '#72B1EA', 400: '#4397E3', 500: '#0B74D1', 600: '#095EA8', 700: '#07477F', 800: '#053056', 900: '#02182D' },
-          secondary: { DEFAULT: '#14B8A6', 50: '#E7FAF8', 100: '#C6F3EE', 200: '#8EE7DD', 300: '#56DBCC', 400: '#2CC9B7', 500: '#14B8A6', 600: '#109385', 700: '#0C6E64', 800: '#084A43', 900: '#042521' },
+          /* Electric cyan. Note the contrast cliff: #22D3EE is 1.81:1 on white, so
+             it can never carry small text on a light surface and can never take
+             white text as a fill. It is a light source, not an ink — use it for
+             dark-mode text, fills paired with ink-900 text (11.13:1), glows,
+             gradients and decoration. For cyan text on light, use 700 (5.56:1). */
+          primary: { DEFAULT: '#22D3EE', 50: '#ECFEFF', 100: '#CFFAFE', 200: '#A5F3FC', 300: '#67E8F9', 400: '#3DDDF2', 500: '#22D3EE', 600: '#0E92AC', 700: '#0B7288', 800: '#0A5464', 900: '#083B47' },
+          /* Violet accent. Same rule: 500 is 4.23:1 on white (large text only),
+             700 is 7.10:1 and is the step for body-sized text on light. */
+          secondary: { DEFAULT: '#8B5CF6', 50: '#F5F3FF', 100: '#EDE9FE', 200: '#DDD6FE', 300: '#C4B5FD', 400: '#A78BFA', 500: '#8B5CF6', 600: '#7C3AED', 700: '#6D28D9', 800: '#5B21B6', 900: '#4C1D95' },
+          /* Near-black surface ramp, replacing slate-900/800 in dark mode. Colder
+             and deeper than slate, which is what makes the cyan read as emissive. */
+          ink: { DEFAULT: '#05070F', 50: '#F5F7FA', 100: '#E4E8F0', 200: '#C3CAD9', 300: '#8E99B0', 400: '#5B6780', 500: '#38425A', 600: '#232C42', 700: '#151C2D', 800: '#0C1220', 900: '#05070F' },
         },
         fontFamily: {
           heading: ['Poppins', 'sans-serif'],
           body: ['Inter', 'sans-serif'],
+          /* Display serif for hero/section titles. Used at light weights (300-400)
+             and large sizes only — a light serif at 16px goes spindly and hurts
+             readability, so body copy stays on Inter. */
+          display: ['Fraunces', 'Georgia', 'serif'],
         },
         boxShadow: {
-          soft: '0 10px 40px -10px rgba(11, 116, 209, 0.15)',
-          card: '0 4px 24px -4px rgba(15, 23, 42, 0.08)',
+          /* soft/card are kept by name — 11+ existing call sites — and retuned. */
+          soft: '0 10px 40px -10px rgba(34, 211, 238, 0.22)',
+          card: '0 4px 24px -4px rgba(5, 7, 15, 0.10)',
+          /* Depth ramp. Two shadows each: a tight one for the contact edge and a
+             wide one for the cast. A single blur reads as a smudge, not elevation. */
+          'depth-1': '0 1px 2px rgba(5,7,15,.06), 0 2px 8px -2px rgba(5,7,15,.08)',
+          'depth-2': '0 2px 4px rgba(5,7,15,.06), 0 8px 24px -6px rgba(5,7,15,.12)',
+          'depth-3': '0 4px 8px rgba(5,7,15,.07), 0 18px 44px -10px rgba(5,7,15,.18)',
+          'depth-4': '0 8px 16px rgba(5,7,15,.08), 0 32px 72px -16px rgba(5,7,15,.26)',
+          /* Hover glow. Low alpha deliberately — a bright cyan bloom at high alpha
+             bleeds over adjacent text and wrecks its contrast. */
+          'glow-primary': '0 0 0 1px rgba(34,211,238,.28), 0 8px 32px -6px rgba(34,211,238,.38)',
+          'glow-secondary': '0 0 0 1px rgba(139,92,246,.28), 0 8px 32px -6px rgba(139,92,246,.38)',
+          /* Inner top highlight: the cheapest "this surface has thickness" cue. */
+          'rim': 'inset 0 1px 0 rgba(255,255,255,.55)',
+          'rim-dark': 'inset 0 1px 0 rgba(255,255,255,.07)',
         },
         animation: {
           'fade-up': 'fadeUp 0.6s ease-out forwards',
           'float': 'float 6s ease-in-out infinite',
+          /* Offset durations so multiple decorations never bob in lockstep —
+             synchronised floating reads as a bug rather than as ambience. */
+          'float-slow': 'float 11s ease-in-out infinite',
+          'drift': 'drift 18s ease-in-out infinite',
+          'aurora': 'aurora 22s ease-in-out infinite',
         },
         keyframes: {
           fadeUp: { '0%': { opacity: 0, transform: 'translateY(20px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
           float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-12px)' } },
+          /* drift adds lateral travel and a hair of rotation — the difference
+             between an element bobbing and an element floating in space. */
+          drift: {
+            '0%, 100%': { transform: 'translate3d(0,0,0) rotate(0deg)' },
+            '33%': { transform: 'translate3d(14px,-18px,0) rotate(2.5deg)' },
+            '66%': { transform: 'translate3d(-10px,10px,0) rotate(-2deg)' },
+          },
+          /* Ambient light. Animates background-position only, so it composites
+             cheaply and never triggers layout or repaints new geometry. */
+          aurora: {
+            '0%, 100%': { backgroundPosition: '0% 50%' },
+            '50%': { backgroundPosition: '100% 50%' },
+          },
         },
       },
     },
@@ -59,7 +117,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% block extra_head %}{% endblock %}
 </head>
-<body class="font-body text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 antialiased transition-colors duration-300">
+<body class="font-body text-slate-700 dark:text-slate-200 bg-white dark:bg-ink-900 antialiased transition-colors duration-300">
 
 {% include "partials/navbar.html" %}
 {% include "partials/flash_messages.html" %}

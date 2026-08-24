@@ -1,8 +1,8 @@
 {% from "partials/macros.html" import btn %}
 <nav x-data="{ mobileOpen: false, scrolled: false }"
      x-init="window.addEventListener('scroll', () => scrolled = window.scrollY > 10)"
-     :class="scrolled ? 'shadow-card bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg' : 'bg-white/60 dark:bg-slate-900/60 backdrop-blur-md'"
-     class="sticky top-0 z-50 transition-all duration-300 border-b border-slate-100 dark:border-slate-800">
+     :class="scrolled ? 'shadow-card bg-white/90 dark:bg-ink-900/90 backdrop-blur-lg' : 'bg-white/60 dark:bg-ink-900/60 backdrop-blur-md'"
+     class="sticky top-0 z-50 transition-all duration-300 border-b border-slate-100 dark:border-ink-700">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between gap-4 h-16 lg:h-20">
       <a href="{{ url_for('main.home') }}" class="group flex items-center gap-2.5 font-heading text-slate-800 dark:text-white shrink-0 min-w-0 hover:opacity-80 transition-opacity">
@@ -40,12 +40,12 @@
         {% set active = (request.endpoint == match) if exact else (request.blueprint == match) %}
         <a href="{{ href }}"
            {% if active %}aria-current="page"{% endif %}
-           class="link-underline transition-colors {{ 'text-primary font-semibold' if active else 'hover:text-primary' }}">{{ label }}</a>
+           class="link-underline transition-colors {{ 'text-primary-700 dark:text-primary-400 font-semibold' if active else 'hover:text-primary-700 dark:hover:text-primary-300' }}">{{ label }}</a>
         {% endfor %}
       </div>
 
       <div class="hidden xl:flex items-center gap-4 shrink-0">
-        <button @click="darkMode = !darkMode" class="w-9 h-9 shrink-0 rounded-full grid place-items-center border border-slate-200 dark:border-slate-700 hover:bg-primary-50 dark:hover:bg-slate-800 hover:border-primary hover:text-primary hover:rotate-12 active:scale-90 transition-all duration-300" aria-label="Toggle dark mode">
+        <button @click="darkMode = !darkMode" class="w-9 h-9 shrink-0 rounded-full grid place-items-center border border-slate-200 dark:border-ink-600 hover:bg-primary-50 dark:hover:bg-ink-800 hover:border-primary hover:text-primary-700 dark:hover:text-primary-300 hover:rotate-12 active:scale-90 transition-all duration-300" aria-label="Toggle dark mode">
           <svg x-show="!darkMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M12 3v1M12 20v1M4.2 4.2l.7.7M19.1 19.1l.7.7M3 12h1M20 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/></svg>
           <svg x-show="darkMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
         </button>
@@ -53,11 +53,11 @@
       </div>
 
       <div class="flex xl:hidden items-center gap-2 shrink-0">
-        <button @click="darkMode = !darkMode" class="w-10 h-10 shrink-0 rounded-full grid place-items-center border border-slate-200 dark:border-slate-700 hover:bg-primary-50 dark:hover:bg-slate-800 hover:border-primary hover:text-primary active:scale-90 transition-all duration-300" aria-label="Toggle dark mode">
+        <button @click="darkMode = !darkMode" class="w-10 h-10 shrink-0 rounded-full grid place-items-center border border-slate-200 dark:border-ink-600 hover:bg-primary-50 dark:hover:bg-ink-800 hover:border-primary hover:text-primary-700 dark:hover:text-primary-300 active:scale-90 transition-all duration-300" aria-label="Toggle dark mode">
           <svg x-show="!darkMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M12 3v1M12 20v1M4.2 4.2l.7.7M19.1 19.1l.7.7M3 12h1M20 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/></svg>
           <svg x-show="darkMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
         </button>
-        <button @click="mobileOpen = !mobileOpen" class="w-10 h-10 grid place-items-center rounded-full text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-primary active:scale-90 transition-all duration-300" aria-label="Toggle menu">
+        <button @click="mobileOpen = !mobileOpen" class="w-10 h-10 grid place-items-center rounded-full text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-ink-800 hover:text-primary-700 dark:hover:text-primary-300 active:scale-90 transition-all duration-300" aria-label="Toggle menu">
           <svg x-show="!mobileOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           <svg x-show="mobileOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </button>
@@ -65,15 +65,15 @@
     </div>
   </div>
 
-  <div x-show="mobileOpen" x-transition x-cloak @click.outside="mobileOpen = false" class="xl:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 px-4 py-4 space-y-1 text-sm font-medium max-h-[calc(100vh-4rem)] overflow-y-auto">
+  <div x-show="mobileOpen" x-transition x-cloak @click.outside="mobileOpen = false" class="xl:hidden bg-white dark:bg-ink-900 border-t border-slate-100 dark:border-ink-700 px-4 py-4 space-y-1 text-sm font-medium max-h-[calc(100vh-4rem)] overflow-y-auto">
     {% set mobile_link = 'block py-2.5 px-3 -mx-1 rounded-lg hover:translate-x-1 active:scale-[0.98] transition-all duration-200' %}
     {% for label, href, match, exact in nav_items %}
     {% set active = (request.endpoint == match) if exact else (request.blueprint == match) %}
     <a href="{{ href }}"
        {% if active %}aria-current="page"{% endif %}
-       class="{{ mobile_link }} {{ 'text-primary font-semibold bg-primary-50 dark:bg-primary-900/25 border-l-2 border-primary' if active else 'hover:text-primary hover:bg-primary-50 dark:hover:bg-primary-900/20' }}">{{ label }}</a>
+       class="{{ mobile_link }} {{ 'text-primary-700 dark:text-primary-400 font-semibold bg-primary-50 dark:bg-primary-900/25 border-l-2 border-primary' if active else 'hover:text-primary-700 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20' }}">{{ label }}</a>
     {% endfor %}
-    <div class="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
+    <div class="pt-4 mt-2 border-t border-slate-100 dark:border-ink-700">
       {{ btn('Book Appointment', url_for('appointments.book'), size='sm', extra='w-full') }}
     </div>
   </div>

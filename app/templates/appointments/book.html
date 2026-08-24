@@ -1,39 +1,29 @@
 {% extends "base.html" %}
 {% from "partials/appointment_form.html" import render_appointment_form with context %}
-{% from "partials/macros.html" import deco_arcs, deco_sparkle, deco_blob %}
+{% from "partials/macros.html" import deco_arcs, deco_blob, opening_hours %}
 {% block title %}Book Appointment — {{ clinic_name }}{% endblock %}
 
 {% block content %}
-<section class="relative overflow-hidden isolate bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 py-16 lg:py-20">
-  {{ deco_arcs(corner='bl', size='w-[28rem] h-[28rem]') }}
-  {{ deco_blob(pos='-right-32 -top-32', size='w-[30rem] h-[30rem]') }}
+<section class="relative overflow-hidden isolate ambient bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-ink-900 dark:via-ink-900 dark:to-ink-800 py-16 lg:py-20">
+  {{ deco_arcs(corner='bl', size='w-[28rem] h-[28rem]', parallax=28) }}
+  {{ deco_blob(pos='-right-32 -top-32', size='w-[30rem] h-[30rem]', parallax=-22, float=true) }}
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="reveal text-center max-w-2xl mx-auto">
-      <span class="text-xs font-bold tracking-widest uppercase text-secondary">Book Online</span>
-      <h1 class="mt-3 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-wide">Make an Appointment</h1>
+      <span class="inline-flex items-center gap-2 rounded-full bg-secondary/15 dark:bg-secondary/20 px-3.5 py-1.5 text-[11px] font-bold tracking-widest uppercase text-secondary-700 dark:text-secondary-300">
+        <span class="inline-block w-4 h-px bg-secondary/60"></span>Book Online
+      </span>
+      <h1 class="mt-4 font-heading text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-wide">Make an Appointment</h1>
+      <span class="block mx-auto mt-5 h-1 w-16 rounded-full bg-gradient-to-r from-primary via-primary-400 to-secondary"></span>
       <p class="mt-4 text-slate-500 dark:text-slate-400">Choose your treatment, preferred dentist and a time that suits you. We'll confirm by email within business hours.</p>
     </div>
 
-    <div class="reveal reveal-scale mt-10 bg-white dark:bg-slate-800 rounded-3xl shadow-soft p-6 sm:p-10 border border-slate-100 dark:border-slate-700">
+    <div class="reveal reveal-scale mt-10 glass-card rounded-3xl shadow-depth-3 p-6 sm:p-10 border border-slate-100 dark:border-ink-600">
       {{ render_appointment_form(form, url_for('appointments.book')) }}
     </div>
 
-    <div class="reveal stagger mt-8 grid sm:grid-cols-3 gap-4 text-sm">
-      <div class="flex justify-between sm:block bg-white/60 dark:bg-slate-800/60 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-700 hover:border-primary/40 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 transition-all duration-300">
-        <span class="text-slate-500 dark:text-slate-400">Monday – Friday</span>
-        <span class="font-semibold text-slate-800 dark:text-white sm:block sm:mt-1">9:00 AM – 7:00 PM</span>
-      </div>
-      <div class="flex justify-between sm:block bg-white/60 dark:bg-slate-800/60 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-700 hover:border-primary/40 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 transition-all duration-300">
-        <span class="text-slate-500 dark:text-slate-400">Saturday</span>
-        <span class="font-semibold text-slate-800 dark:text-white sm:block sm:mt-1">9:00 AM – 4:30 PM</span>
-      </div>
-      <div class="flex justify-between sm:block bg-red-50/70 dark:bg-red-900/20 rounded-xl px-4 py-3 border border-red-100 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 hover:-translate-y-0.5 transition-all duration-300">
-        <span class="text-red-500 dark:text-red-400">Sunday</span>
-        <span class="font-semibold text-red-600 dark:text-red-400 sm:block sm:mt-1">Emergency care only</span>
-      </div>
-    </div>
-    <p class="reveal mt-4 text-center text-xs text-slate-400 dark:text-slate-500">Closed for a break from 1:00 – 2:00 PM.</p>
-    <p class="reveal mt-4 text-center text-sm text-slate-500 dark:text-slate-400">Dental emergency? Call <a href="tel:{{ clinic_phone }}" class="text-primary font-semibold hover:text-primary-600 hover:underline underline-offset-4 transition-colors">{{ clinic_phone }}</a></p>
+    <div class="mt-8">{{ opening_hours() }}</div>
+    <p class="reveal mt-4 text-center text-xs text-slate-400 dark:text-slate-400">Closed for a break from 1:00 – 2:00 PM.</p>
+    <p class="reveal mt-4 text-center text-sm text-slate-500 dark:text-slate-400">Dental emergency? Call <a href="tel:{{ clinic_phone }}" class="text-primary-700 dark:text-primary-400 font-semibold hover:text-primary-800 dark:hover:text-primary-300 hover:underline underline-offset-4 transition-colors">{{ clinic_phone }}</a></p>
   </div>
 </section>
 {% endblock %}

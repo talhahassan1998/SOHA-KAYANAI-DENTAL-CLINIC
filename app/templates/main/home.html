@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import service_card, doctor_card, testimonial_card, faq_item, stat_counter, btn, section_heading, feature_icon, deco_arcs, deco_sparkle, deco_blob, deco_dots, deco_rings, process_steps, trust_strip %}
+{% from "partials/macros.html" import service_card, doctor_card, testimonial_card, faq_item, stat_counter, btn, section_heading, feature_icon, service_icon, deco_arcs, deco_sparkle, deco_blob, deco_dots, process_steps, trust_strip, gallery_grid, opening_hours %}
 {% from "partials/appointment_form.html" import render_appointment_form with context %}
 
 {% block title %}{{ clinic_name }} — Your Smile, Our Priority{% endblock %}
@@ -7,20 +7,51 @@
 {% block content %}
 
 <!-- Hero -->
-<section class="relative overflow-hidden isolate bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
-  {# Arcs radiate from the bottom-left corner, behind the copy column; the warm blob
-     sits top-right behind the photo. Both anchor to real corners so nothing floats. #}
-  {{ deco_arcs(corner='bl', size='w-[32rem] h-[32rem]') }}
-  {{ deco_blob(pos='-right-40 -top-40', size='w-[38rem] h-[38rem]') }}
-  {{ deco_sparkle(pos='left-8 top-16 hidden lg:block', size='w-10 h-10') }}
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-20 lg:pt-20 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
-    <div class="reveal reveal-left">
-      <span class="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-primary bg-primary-50 dark:bg-primary-900/40 px-4 py-1.5 rounded-full">
+{# Full-bleed clinic footage with the copy in a frosted panel over it, mirroring the
+   reference layout. The video is a background layer (aria-hidden, no controls): all
+   meaning lives in the text above it, so nothing is lost when it doesn't play.
+   A scrim sits between video and copy — text over raw video fails contrast the
+   moment a bright frame comes round, and this hero must stay readable at all times. #}
+<section class="hero-cinematic relative isolate overflow-hidden">
+  {# data-parallax drifts the footage against the scroll (main.js writes --parallax-y).
+     Small value: the media box is scaled up in CSS to cover the travel, and a large
+     drift would expose an edge. #}
+  <div class="hero-media absolute inset-x-0 -z-10" data-parallax="-40">
+    <video class="hero-video h-full w-full object-cover"
+           autoplay muted loop playsinline preload="metadata"
+           poster="{{ url_for('static', filename='images/hero-dental-care.jpg') }}"
+           aria-hidden="true" tabindex="-1">
+      <source src="{{ url_for('static', filename='video/dental-hero.mp4') }}" type="video/mp4">
+    </video>
+    <img src="{{ url_for('static', filename='images/hero-dental-care.jpg') }}" alt=""
+         class="hero-video-fallback h-full w-full object-cover" aria-hidden="true">
+    {# Scrim, kept deliberately short: it fades out by ~55% across so the right half
+       of the footage stays fully sharp. The copy doesn't need the scrim to be legible
+       — .glass-hero is opaque enough on its own — so this only has to stop the
+       panel's left edge from meeting raw video, not veil the whole clip. #}
+    <div class="absolute inset-0 bg-gradient-to-r from-white/80 via-white/25 to-transparent
+                dark:from-ink-900/85 dark:via-ink-900/35 dark:to-transparent"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32 grid lg:grid-cols-12 gap-12 items-center">
+    {# .reveal (L1) → .scene (L2, perspective only) → .tilt (L3, JS writes the
+       rotation) → the panel itself. Four elements because each layer owns exactly
+       one transform, per the L1-L5 rule in style.css. The panel tilts gently
+       toward the cursor, which is what gives the hero real depth rather than a
+       flat card sitting on video. #}
+    <div class="reveal reveal-left lg:col-span-7 scene">
+     <div class="tilt">
+      <div class="glass-hero rounded-[2rem] p-8 sm:p-10 lg:p-12">
+      <span class="inline-flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/40 px-4 py-1.5 rounded-full">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-3.5 h-3.5"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
         Trusted Since 2014
       </span>
-      <h1 class="mt-6 font-heading text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-wide text-slate-900 dark:text-white">
-        Your Smile,<br><span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Our Priority</span>
+      {# Display serif at a light weight — the reference's signature move. Kept to the
+         hero and section titles; body copy stays on Inter, where a light serif would
+         go spindly. leading-[1.05] because large serif needs tighter leading than the
+         sans did, or the two lines drift apart. #}
+      <h1 class="mt-6 font-display text-5xl sm:text-6xl lg:text-7xl font-light leading-[1.05] tracking-tight text-slate-900 dark:text-white">
+        Your Smile,<br><span class="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 bg-clip-text text-transparent">Our Priority</span>
       </h1>
       <p class="mt-6 text-slate-500 dark:text-slate-400 text-lg max-w-lg">
         Advanced dental care with experienced specialists — digital diagnostics, gentle technique, and honest guidance from your first visit.
@@ -45,22 +76,59 @@
           <p class="text-xs text-slate-500 dark:text-slate-400">Rated 4.9/5 by 2,400+ patients</p>
         </div>
       </div>
+      </div>
+     </div>
     </div>
 
-    <div class="reveal reveal-right group relative">
-      <div class="relative rounded-[2rem] overflow-hidden shadow-soft aspect-[4/5] max-w-md mx-auto animate-float">
-        <img src="{{ url_for('static', filename='images/hero-dental-care.jpg') }}" alt="Smiling patient in a modern dental chair" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-      </div>
-      <div class="glass absolute -bottom-6 left-1/2 -translate-x-1/2 lg:left-auto lg:right-4 lg:translate-x-0 rounded-2xl px-5 py-4 shadow-soft hover:shadow-lg hover:-translate-y-1 lg:hover:translate-x-0 transition-all duration-300">
-        <p class="text-2xl font-heading font-extrabold text-primary">98.7%</p>
-        <p class="text-xs text-slate-500 dark:text-slate-300 whitespace-nowrap">Highest patient satisfaction</p>
+    {# The satisfaction stat now floats free in the right-hand column, over the video
+       rather than pinned to a photo card. .scene/.tilt stay outside the .reveal
+       wrapper's transform, per the layering convention in style.css. #}
+    <div class="reveal reveal-right scene relative lg:col-span-5 hidden lg:block">
+      {# .float-3d gets its own element between .tilt and .tilt-pop: all three
+         animate `transform`, and per the L1-L5 rule in style.css two writers on
+         one element silently cancel each other. #}
+      <div class="tilt group relative flex justify-end">
+        <div class="float-3d">
+          <div class="tilt-pop glass rounded-2xl px-6 py-5 shadow-depth-3">
+            <p class="text-3xl font-display font-light text-primary-700 dark:text-primary-300">98.7%</p>
+            <p class="text-xs text-slate-500 dark:text-slate-300 whitespace-nowrap">Highest patient satisfaction</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
+  {# Circular service shortcuts, as in the reference layout: one round icon per
+     featured service, sitting at the foot of the hero. Reuses the existing
+     service_icon glyphs and featured_services — no new route data. Scrolls
+     horizontally on narrow screens rather than wrapping into a tall block. #}
+  {% if featured_services %}
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 lg:pb-16">
+    <ul class="stagger flex gap-5 sm:gap-7 overflow-x-auto lg:justify-center snap-x snap-mandatory scrollbar-none -mx-1 px-1 pb-2">
+      {% for service in featured_services[:6] %}
+      <li class="reveal reveal-3d-y shrink-0 snap-start">
+        <a href="{{ url_for('services.detail', slug=service.slug) }}"
+           class="group/ic flex w-20 sm:w-24 flex-col items-center gap-2.5 text-center focus-visible:outline-none">
+          <span class="grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full glass-quiet border border-slate-100 dark:border-ink-600
+                       text-primary-600 dark:text-primary-300 shadow-depth-2
+                       transition-all duration-300 group-hover/ic:-translate-y-1 group-hover/ic:shadow-glow-primary
+                       group-hover/ic:border-primary/40 group-focus-visible/ic:shadow-glow-primary">
+            {{ service_icon(service.icon_name) }}
+          </span>
+          <span class="text-[11px] sm:text-xs font-medium leading-tight text-slate-600 dark:text-slate-300
+                       transition-colors duration-300 group-hover/ic:text-primary-700 dark:group-hover/ic:text-primary-300">
+            {{ service.name }}
+          </span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
 </section>
 
 <!-- Stats -->
-<section class="bg-primary-50 dark:bg-slate-800/60 border-y border-primary-100 dark:border-slate-700">
+<section class="relative isolate overflow-hidden ambient bg-primary-50 dark:bg-ink-800/70 border-y border-primary-100 dark:border-ink-600">
   <div class="stagger max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
     {% for stat in stats %}<div class="reveal">{{ stat_counter(stat) }}</div>{% endfor %}
   </div>
@@ -78,7 +146,11 @@
 
 <!-- About / services intro -->
 <section class="relative overflow-hidden isolate">
+  {# Three parallax depths in one section — the skill's "vary speed per layer" rule.
+     Larger data-parallax = faster drift = reads as nearer the viewer. #}
   {{ deco_dots(pos='right-4 top-16 hidden lg:block', size='w-64 h-64') }}
+  {{ deco_blob(pos='-left-32 top-1/3', size='w-[26rem] h-[26rem]', parallax=14) }}
+  {{ deco_arcs(corner='tr', size='w-[24rem] h-[24rem]', tone='text-secondary/[0.18] dark:text-secondary/[0.2]', parallax=38) }}
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   {{ section_heading('What We Do', 'Complete dental care under one roof', 'From routine prevention to full-scale reconstruction, every treatment is planned digitally and delivered by a specialist in that field.') }}
 
@@ -106,8 +178,8 @@
 </section>
 
 <!-- Why choose us -->
-<section class="relative overflow-hidden isolate bg-gradient-to-b from-primary-50 to-white dark:from-slate-800 dark:to-slate-900 py-20">
-  {{ deco_arcs(corner='tr', size='w-[30rem] h-[30rem]', tone='text-secondary/[0.3] dark:text-secondary/[0.32]') }}
+<section class="relative overflow-hidden isolate bg-gradient-to-b from-primary-50 to-white dark:from-ink-800 dark:to-ink-900 py-20">
+  {{ deco_arcs(corner='tr', size='w-[30rem] h-[30rem]', tone='text-secondary/[0.3] dark:text-secondary/[0.32]', parallax=22) }}
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     {{ section_heading('Why Choose Us', 'Reasons patients keep coming back', 'Clinical excellence matters, but so does how you feel in the chair. We deliver both.') }}
 
@@ -120,13 +192,29 @@
         ("wallet", "Affordable Pricing", "Transparent quotes, insurance support and interest-free payment plans."),
         ("siren", "Emergency Dental Care", "Same-day emergency slots reserved daily, plus a 24/7 on-call dentist."),
       ] %}
+      {# glass-card, not glass: six real backdrop-filters in one grid would blow the
+         2-layer blur budget on its own. The gradient tier looks the same here and
+         composites for free. #}
       {% for icon, title, desc in reasons %}
-      <div class="reveal group card-sheen card-sheen--secondary relative isolate overflow-hidden glass rounded-2xl p-6 hover-lift hover:border-secondary/40 transition-colors duration-300">
-        <div class="w-11 h-11 rounded-xl bg-secondary/10 text-secondary grid place-items-center mb-4 group-hover:bg-secondary group-hover:text-white group-hover:scale-110 group-hover:-rotate-6 group-hover:shadow-soft transition-all duration-300">
-          {{ feature_icon(icon) }}
+      {# .reveal-3d and .scene must NOT share an element: .reveal-3d is layer L1 and
+         owns a transform (its resting state is a real matrix3d, not `none`, because
+         the baked perspective() keeps it a 3D transform). On the same node as the
+         L2 .scene that made the card a nested 3D context with two perspectives —
+         1200px baked in and 1100px from .scene — which flattened the pointer tilt
+         and is what read as the jerk. Splitting them restores the documented
+         L1 > L2 > L3 chain at the top of style.css. #}
+      <div class="reveal reveal-3d h-full">
+       <div class="scene h-full">
+        <div class="tilt h-full">
+        <div class="group card-sheen card-sheen--secondary hover-lift glow-on-hover glow-on-hover--violet relative isolate overflow-hidden h-full glass-card rounded-2xl p-6 border border-slate-100 dark:border-ink-600 hover:border-secondary/40 transition-colors duration-300 shadow-depth-2">
+          <div class="tilt-pop w-11 h-11 rounded-xl bg-secondary/10 text-secondary-700 dark:text-secondary-300 grid place-items-center mb-4 group-hover:bg-secondary group-hover:text-white group-hover:shadow-soft transition-colors duration-300">
+            {{ feature_icon(icon) }}
+          </div>
+          <h3 class="font-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-secondary-700 dark:group-hover:text-secondary-300 transition-colors">{{ title }}</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ desc }}</p>
         </div>
-        <h3 class="font-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-secondary transition-colors">{{ title }}</h3>
-        <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ desc }}</p>
+        </div>
+       </div>
       </div>
       {% endfor %}
     </div>
@@ -142,8 +230,8 @@
 </section>
 
 <!-- Testimonials -->
-<section class="relative overflow-hidden isolate bg-primary-50 dark:bg-slate-800/60 py-20">
-  {{ deco_blob(pos='-left-32 top-1/4', size='w-[28rem] h-[28rem]', tone='bg-primary/20 dark:bg-primary/[0.14]') }}
+<section class="relative overflow-hidden isolate bg-primary-50 dark:bg-ink-800/70 py-20">
+  {{ deco_blob(pos='-left-32 top-1/4', size='w-[28rem] h-[28rem]', tone='bg-primary/20 dark:bg-primary/[0.14]', parallax=24, float=true) }}
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     {{ section_heading('Patient Stories', '15,000 smiles and counting', 'Real words from real patients treated at ' ~ clinic_name ~ '.') }}
     <div class="mt-12">
@@ -161,31 +249,7 @@
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   {{ section_heading('Gallery', 'Smile transformations', 'A selection of recent work from our cosmetic and restorative team.') }}
 
-  <div x-data="{ open: false, activeImg: '', activeCaption: '' }" class="stagger mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% for img in gallery_images %}
-    <button type="button" @click="open = true; activeImg = '{{ img.after_image_url or img.before_image_url }}'; activeCaption = '{{ img.caption }}'"
-            class="reveal reveal-scale group relative rounded-2xl overflow-hidden shadow-card hover-lift text-left">
-      <img src="{{ img.after_image_url or img.before_image_url }}" alt="{{ img.title }}" loading="lazy" class="lazy-fade w-full h-56 object-cover group-hover:scale-110 transition-transform duration-700">
-      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent group-hover:from-black/80 transition-colors duration-500"></div>
-      <div class="absolute bottom-0 left-0 right-0 p-4 group-hover:-translate-y-1 transition-transform duration-300">
-        <p class="text-white font-heading font-semibold text-sm">{{ img.title }}</p>
-        <p class="text-white/70 text-xs">{{ img.caption }}</p>
-      </div>
-    </button>
-    {% endfor %}
-
-    <!-- Lightbox -->
-    <div x-show="open" x-cloak x-transition.opacity @keydown.escape.window="open = false"
-         class="fixed inset-0 z-[110] bg-black/85 grid place-items-center p-4" @click.self="open = false">
-      <button @click="open = false" class="absolute top-6 right-6 text-white/80 hover:text-white hover:rotate-90 active:scale-90 transition-all duration-300" aria-label="Close">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      </button>
-      <div class="max-w-3xl w-full">
-        <img :src="activeImg" alt="" class="w-full max-h-[75vh] object-contain rounded-xl">
-        <p x-text="activeCaption" class="text-white/80 text-center text-sm mt-4"></p>
-      </div>
-    </div>
-  </div>
+  {{ gallery_grid(gallery_images) }}
 
   <div class="text-center mt-10">
     {{ btn('View Full Gallery', url_for('gallery.index'), variant='secondary') }}
@@ -193,32 +257,19 @@
 </section>
 
 <!-- Appointment CTA -->
-<section id="book" class="relative overflow-hidden isolate bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 py-20">
-  {{ deco_arcs(corner='bl', size='w-[30rem] h-[30rem]') }}
-  {{ deco_blob(pos='-right-32 -bottom-24', size='w-[30rem] h-[30rem]') }}
+<section id="book" class="relative overflow-hidden isolate bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-ink-800 dark:via-ink-900 dark:to-ink-800 py-20">
+  {{ deco_arcs(corner='bl', size='w-[30rem] h-[30rem]', parallax=26) }}
+  {{ deco_blob(pos='-right-32 -bottom-24', size='w-[30rem] h-[30rem]', parallax=-20, float=true) }}
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     {{ section_heading('Book Online', 'Reserve your appointment in under a minute', "Choose your treatment, preferred dentist and a time that suits you. We'll confirm by email within business hours.") }}
 
-    <div class="reveal reveal-scale mt-10 bg-white dark:bg-slate-800 rounded-3xl shadow-soft p-6 sm:p-10 border border-slate-100 dark:border-slate-700">
+    <div class="reveal reveal-scale mt-10 glass-card rounded-3xl shadow-depth-3 p-6 sm:p-10 border border-slate-100 dark:border-ink-600">
       {{ render_appointment_form(appt_form, url_for('appointments.book')) }}
     </div>
 
-    <div class="reveal mt-8 grid sm:grid-cols-3 gap-4 text-sm">
-      <div class="flex justify-between sm:block bg-white/60 dark:bg-slate-800/60 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-700 hover:border-primary/40 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 transition-all duration-300">
-        <span class="text-slate-500 dark:text-slate-400">Monday – Friday</span>
-        <span class="font-semibold text-slate-800 dark:text-white sm:block sm:mt-1">9:00 AM – 7:00 PM</span>
-      </div>
-      <div class="flex justify-between sm:block bg-white/60 dark:bg-slate-800/60 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-700 hover:border-primary/40 hover:bg-white dark:hover:bg-slate-800 hover:-translate-y-0.5 transition-all duration-300">
-        <span class="text-slate-500 dark:text-slate-400">Saturday</span>
-        <span class="font-semibold text-slate-800 dark:text-white sm:block sm:mt-1">9:00 AM – 4:30 PM</span>
-      </div>
-      <div class="flex justify-between sm:block bg-red-50/70 dark:bg-red-900/20 rounded-xl px-4 py-3 border border-red-100 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 hover:-translate-y-0.5 transition-all duration-300">
-        <span class="text-red-500 dark:text-red-400">Sunday</span>
-        <span class="font-semibold text-red-600 dark:text-red-400 sm:block sm:mt-1">Emergency care only</span>
-      </div>
-    </div>
-    <p class="reveal mt-4 text-center text-xs text-slate-400 dark:text-slate-500">Closed for a break from 1:00 – 2:00 PM.</p>
-    <p class="reveal mt-4 text-center text-sm text-slate-500 dark:text-slate-400">Dental emergency? Call <a href="tel:{{ clinic_phone }}" class="text-primary font-semibold hover:text-primary-600 hover:underline underline-offset-4 transition-colors">{{ clinic_phone }}</a></p>
+    <div class="mt-8">{{ opening_hours() }}</div>
+    <p class="reveal mt-4 text-center text-xs text-slate-400 dark:text-slate-400">Closed for a break from 1:00 – 2:00 PM.</p>
+    <p class="reveal mt-4 text-center text-sm text-slate-500 dark:text-slate-400">Dental emergency? Call <a href="tel:{{ clinic_phone }}" class="text-primary-700 dark:text-primary-400 font-semibold hover:text-primary-800 dark:hover:text-primary-300 hover:underline underline-offset-4 transition-colors">{{ clinic_phone }}</a></p>
   </div>
 </section>
 

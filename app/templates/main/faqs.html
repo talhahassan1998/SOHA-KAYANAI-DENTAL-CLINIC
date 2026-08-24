@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import faq_item, btn, page_hero, PILL_BASE, PILL_ACTIVE, PILL_INACTIVE %}
+{% from "partials/macros.html" import faq_item, btn, page_hero, cta_panel, PILL_BASE, PILL_ACTIVE, PILL_INACTIVE %}
 {% block title %}FAQs — {{ clinic_name }}{% endblock %}
 
 {% block content %}
@@ -23,10 +23,6 @@
     {% endfor %}
   </div>
 
-  <div class="reveal text-center mt-14 bg-primary-50 dark:bg-slate-800/60 rounded-3xl p-10">
-    <h2 class="font-heading text-2xl font-bold text-slate-900 dark:text-white">Still have questions?</h2>
-    <p class="mt-2 text-slate-500 dark:text-slate-400">Our front desk is happy to help.</p>
-    {{ btn('Contact Us', url_for('main.contact'), size='lg', extra='mt-6') }}
-  </div>
+  {{ cta_panel('Still have questions?', 'Our front desk is happy to help.', 'Contact Us', url_for('main.contact')) }}
 </section>
 {% endblock %}

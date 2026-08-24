@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import btn, page_hero, INPUT_CLASSES %}
+{% from "partials/macros.html" import btn, page_hero, INPUT_CLASSES, info_card %}
 {% block title %}Contact Us — {{ clinic_name }}{% endblock %}
 
 {% block content %}
@@ -7,34 +7,21 @@
 
 <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid lg:grid-cols-5 gap-10">
   <div class="lg:col-span-2 space-y-6">
-    <div class="reveal group bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card hover-lift border border-slate-100 dark:border-slate-700 hover:border-primary/30 transition-colors flex gap-4">
-      <div class="w-11 h-11 rounded-xl bg-primary-50 dark:bg-primary-900/40 text-primary grid place-items-center shrink-0 group-hover:bg-primary group-hover:text-white group-hover:scale-110 transition-all duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 21s-7-6.5-7-11.5A7 7 0 0 1 19 9.5C19 14.5 12 21 12 21Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9.5" r="2.3" stroke="currentColor" stroke-width="1.6"/></svg>
-      </div>
-      <div><h3 class="font-heading font-semibold text-slate-900 dark:text-white">Visit Us</h3><p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ clinic_address }}</p></div>
-    </div>
-    <div class="reveal group bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card hover-lift border border-slate-100 dark:border-slate-700 hover:border-primary/30 transition-colors flex gap-4">
-      <div class="w-11 h-11 rounded-xl bg-primary-50 dark:bg-primary-900/40 text-primary grid place-items-center shrink-0 group-hover:bg-primary group-hover:text-white group-hover:scale-110 transition-all duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M4 5c0 8.3 6.7 15 15 15l3-4-6-3-2 2c-2-1-4.3-3.3-5.3-5.3l2-2-3-6-4 3Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-      </div>
-      <div><h3 class="font-heading font-semibold text-slate-900 dark:text-white">Call Us</h3><p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ clinic_phone }}</p></div>
-    </div>
-    <div class="reveal group bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-card hover-lift border border-slate-100 dark:border-slate-700 hover:border-primary/30 transition-colors flex gap-4">
-      <div class="w-11 h-11 rounded-xl bg-primary-50 dark:bg-primary-900/40 text-primary grid place-items-center shrink-0 group-hover:bg-primary group-hover:text-white group-hover:scale-110 transition-all duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/></svg>
-      </div>
-      <div>
-        <h3 class="font-heading font-semibold text-slate-900 dark:text-white">Hours</h3>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Mon–Fri: 9:00 AM – 7:00 PM<br>Sat: 9:00 AM – 4:30 PM<br>Sun: Emergency only</p>
-      </div>
-    </div>
-    <div class="reveal rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 hover:border-primary/40 hover:shadow-card h-56 transition-all duration-300">
+    {% set _pin = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 21s-7-6.5-7-11.5A7 7 0 0 1 19 9.5C19 14.5 12 21 12 21Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9.5" r="2.3" stroke="currentColor" stroke-width="1.6"/></svg>' %}
+    {% set _phone = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M4 5c0 8.3 6.7 15 15 15l3-4-6-3-2 2c-2-1-4.3-3.3-5.3-5.3l2-2-3-6-4 3Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>' %}
+    {% set _clock = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/></svg>' %}
+    {{ info_card('Visit Us', clinic_address, icon_svg=_pin, layout='row', fill=false) }}
+    {{ info_card('Call Us', clinic_phone, icon_svg=_phone, layout='row', fill=false) }}
+    {% call info_card('Hours', icon_svg=_clock, layout='row', fill=false) %}
+      Mon–Fri: 9:00 AM – 7:00 PM<br>Sat: 9:00 AM – 4:30 PM<br>Sun: Emergency only
+    {% endcall %}
+    <div class="reveal rounded-2xl overflow-hidden border border-slate-100 dark:border-ink-600 hover:border-primary/40 hover:shadow-depth-2 h-56 transition-all duration-300">
       <iframe src="https://maps.google.com/maps?q={{ google_maps_query | urlencode }}&z=14&output=embed"
               class="w-full h-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Clinic location map"></iframe>
     </div>
   </div>
 
-  <div class="lg:col-span-3 reveal bg-white dark:bg-slate-800 rounded-3xl shadow-soft p-6 sm:p-8 border border-slate-100 dark:border-slate-700">
+  <div class="lg:col-span-3 reveal glass-card rounded-3xl shadow-depth-3 p-6 sm:p-8 border border-slate-100 dark:border-ink-600">
     <form method="POST" action="{{ url_for('main.contact') }}" class="space-y-5" novalidate>
       {{ form.hidden_tag() }}
       <div style="display:none;" aria-hidden="true">

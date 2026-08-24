@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import btn %}
+{% from "partials/macros.html" import btn, blog_card %}
 {% block title %}{{ post.title }} — {{ clinic_name }}{% endblock %}
 {% block meta_description %}{{ post.excerpt }}{% endblock %}
 
 {% block content %}
 <article class="stagger max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
   <nav class="reveal text-xs text-slate-500 dark:text-slate-400 mb-6">
-    <a href="{{ url_for('blog.list_posts') }}" class="hover:text-primary transition-colors">Blog</a> / <span class="text-slate-700 dark:text-slate-200">{{ post.title }}</span>
+    <a href="{{ url_for('blog.list_posts') }}" class="hover:text-primary-700 dark:hover:text-primary-300 transition-colors">Blog</a> / <span class="text-slate-700 dark:text-slate-200">{{ post.title }}</span>
   </nav>
 
   <h1 class="reveal font-heading text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white leading-snug tracking-wide">{{ post.title }}</h1>
-  <p class="reveal mt-4 text-sm text-slate-400 dark:text-slate-500">{{ post.published_at.strftime('%B %d, %Y') if post.published_at else '' }} &middot; By {{ post.author }}</p>
+  <p class="reveal mt-4 text-sm text-slate-400 dark:text-slate-400">{{ post.published_at.strftime('%B %d, %Y') if post.published_at else '' }} &middot; By {{ post.author }}</p>
 
   <div class="reveal reveal-scale group mt-8 rounded-2xl overflow-hidden shadow-card hover:shadow-soft aspect-[16/9] transition-shadow duration-500">
     <img src="{{ post.cover_image_url }}" alt="{{ post.title }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
@@ -20,7 +20,7 @@
     <p>{{ post.content }}</p>
   </div>
 
-  <div class="reveal mt-12 bg-primary-50 dark:bg-slate-800/60 rounded-2xl p-8 text-center">
+  <div class="reveal mt-12 bg-primary-50 dark:bg-ink-800/60 rounded-2xl p-8 text-center">
     <h2 class="font-heading text-xl font-bold text-slate-900 dark:text-white">Have questions about this topic?</h2>
     {{ btn('Book a Consultation', url_for('appointments.book'), extra='mt-5') }}
   </div>
@@ -31,14 +31,7 @@
   <h2 class="reveal font-heading text-2xl font-bold text-slate-900 dark:text-white mb-8">More from the blog</h2>
   <div class="stagger grid md:grid-cols-3 gap-6">
     {% for p in recent %}
-    <a href="{{ url_for('blog.detail', slug=p.slug) }}" class="reveal group block bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-card hover-lift border border-slate-100 dark:border-slate-700 hover:border-primary/30 transition-colors">
-      <div class="aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-700">
-        <img src="{{ p.cover_image_url }}" alt="{{ p.title }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-      </div>
-      <div class="p-4">
-        <h3 class="font-heading font-semibold text-sm text-slate-900 dark:text-white group-hover:text-primary transition-colors">{{ p.title }}</h3>
-      </div>
-    </a>
+    {{ blog_card(p, size='sm') }}
     {% endfor %}
   </div>
 </section>

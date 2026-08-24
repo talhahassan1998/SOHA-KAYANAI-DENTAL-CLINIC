@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "partials/macros.html" import testimonial_card, btn, page_hero %}
+{% from "partials/macros.html" import testimonial_card, btn, page_hero, cta_panel %}
 {% block title %}Patient Testimonials — {{ clinic_name }}{% endblock %}
 
 {% block content %}
@@ -10,9 +10,6 @@
     {% for t in testimonials %}{{ testimonial_card(t) }}{% endfor %}
   </div>
 
-  <div class="reveal text-center mt-14 bg-primary-50 dark:bg-slate-800/60 rounded-3xl p-10">
-    <h2 class="font-heading text-2xl font-bold text-slate-900 dark:text-white">Ready to start your own story?</h2>
-    {{ btn('Book Appointment', url_for('appointments.book'), size='lg', extra='mt-6') }}
-  </div>
+  {{ cta_panel('Ready to start your own story?', None, 'Book Appointment', url_for('appointments.book')) }}
 </section>
 {% endblock %}
