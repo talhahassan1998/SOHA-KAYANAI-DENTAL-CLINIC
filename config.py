@@ -108,9 +108,9 @@ class DevelopmentConfig(Config):
 
     database_url = os.environ.get("DATABASE_URL")
 
-    if database_url and database_url.startswith("postgresql://"):
+    if database_url and database_url.startswith("postgresql+psycopg://"):
         database_url = database_url.replace(
-            "postgresql://", "postgresql+psycopg://", 1
+            "postgresql+psycopg://", "postgresql+psycopg://", 1
         )
 
     SQLALCHEMY_DATABASE_URI = database_url or f"sqlite:///{BASE_DIR / 'instance' / 'dental_clinic.db'}"
