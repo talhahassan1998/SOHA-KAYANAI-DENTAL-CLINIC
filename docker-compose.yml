@@ -7,7 +7,7 @@ services:
       - .env
     environment:
       FLASK_ENV: production
-      DATABASE_URL: postgresql://dental:dental@db:5432/dental_clinic
+      DATABASE_URL: postgresql://neondb_owner:npg_0XOYUs3PmKVa@ep-bitter-credit-azxxohhq-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
     depends_on:
       db:
         condition: service_healthy

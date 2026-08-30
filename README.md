@@ -101,7 +101,7 @@ dental_clinic/
 
 ```bash
 export FLASK_ENV=production
-export DATABASE_URL=postgresql://user:pass@host:5432/dental_clinic
+export DATABASE_URL=postgresql://neondb_owner:npg_0XOYUs3PmKVa@ep-bitter-credit-azxxohhq-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 export SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
 flask db upgrade
 gunicorn -w 4 -b 0.0.0.0:8000 run:app

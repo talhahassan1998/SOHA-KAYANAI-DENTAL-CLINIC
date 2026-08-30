@@ -108,10 +108,15 @@ class DevelopmentConfig(Config):
 
     database_url = os.environ.get("DATABASE_URL")
 
-    if database_url and database_url.startswith("postgresql://"):
-        database_url = database_url.replace(
-            "postgresql://", "postgresql+psycopg://", 1
-        )
+    if database_url:
+        # Railway/Neon may provide postgresql://
+        # Force SQLAlchemy to use Psycopg 3.
+        if database_url.startswith("postgresql://"):
+            database_url = database_url.replace(
+                "postgresql://",
+                "postgresql+psycopg://",
+                1,
+            )
 
     SQLALCHEMY_DATABASE_URI = (
         database_url
