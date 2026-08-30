@@ -56,16 +56,24 @@ html { scroll-behavior: smooth; }
 .group:hover .zoom-img,
 .zoom-wrap:hover .zoom-img { transform: scale(1.08); }
 
-/* Card that lifts AND zooms on hover. Scale is the noticeable part, so it stays
-   subtle — past ~1.03 the text inside visibly resamples and looks blurry. */
+/* Card that lifts AND zooms on hover. Promoting the card to its own layer
+   (translateZ + backface-visibility) keeps the text rasterized at the scaled
+   size, so the zoom can go well past the ~1.03 blur ceiling of a plain scale. */
 .card-pop {
   transition: transform var(--dur-hover-out) var(--ease-glide), box-shadow var(--dur-hover-out) ease;
   will-change: transform;
+  backface-visibility: hidden;
 }
-.card-pop:hover {
+/* Doubled class: cards are also .reveal, and `.reveal.in-view { transform }`
+   lands later with equal specificity — it would otherwise cancel this hover
+   transform entirely once the card scrolled into view. */
+.card-pop.card-pop:hover {
   transition-duration: var(--dur-hover-in);
-  transform: translateY(-10px) scale(1.025);
+  transform: translateY(-10px) scale(1.06) translateZ(0);
   box-shadow: 0 30px 70px -34px rgba(30, 32, 35, .22);
+  /* Lift above grid neighbours so the zoom overlaps them, not slides under. */
+  position: relative;
+  z-index: 10;
 }
 
 /* Icon tiles that pop and rotate slightly on hover */
@@ -403,7 +411,7 @@ img.lazy-fade.loaded {
   .stagger > .reveal { transition-delay: 0ms; }
 
   .hover-lift:hover,
-  .card-pop:hover { transform: none; box-shadow: none; }
+  .card-pop.card-pop:hover { transform: none; box-shadow: none; }
   .group:hover .zoom-img,
   .zoom-wrap:hover .zoom-img,
   .group:hover .icon-pop { transform: none; }

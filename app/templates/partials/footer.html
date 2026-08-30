@@ -4,14 +4,9 @@
   <div class="stagger max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
     <div class="reveal">
       <a href="{{ url_for('main.home') }}" class="flex items-center gap-2.5 font-display text-white mb-4">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="{{ clinic_name }} logo" class="w-10 h-10 shrink-0 object-contain">
-        {% set name_parts = clinic_name.rsplit(' ', 2) %}
-        <span class="leading-tight">
-          <span class="block font-bold text-lg">{{ name_parts[0] }}</span>
-          {% if name_parts|length > 1 %}
-          <span class="block text-xs font-semibold tracking-[0.22em] uppercase text-ink-500">{{ name_parts[1:]|join(' ') }}</span>
-          {% endif %}
-        </span>
+        {# Footer is always dark (bg-primary-800/900), so the light-ink lockup is used
+           unconditionally -- no dark: swap needed. Wordmark is in the art, so no text name. #}
+        <img src="{{ url_for('static', filename='images/logo-dark.png') }}" alt="{{ clinic_name }}" class="h-12 w-auto shrink-0 object-contain">
       </a>
       <p class="text-sm text-primary-300/80 leading-relaxed mb-5">A specialist-led dental studio combining digital diagnostics, gentle technique and genuinely warm care.</p>
 

@@ -17,14 +17,11 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between gap-4 h-16 lg:h-20">
       <a href="{{ url_for('main.home') }}" class="flex items-center gap-2.5 font-display text-primary dark:text-white shrink-0 min-w-0">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="{{ clinic_name }} logo" class="w-10 h-10 shrink-0 object-contain">
-        {% set name_parts = clinic_name.rsplit(' ', 2) %}
-        <span class="leading-tight truncate max-w-[9rem] sm:max-w-none">
-          <span class="block font-medium text-sm sm:text-base tracking-tightest">{{ name_parts[0] }}</span>
-          {% if name_parts|length > 1 %}
-          <span class="block text-[10px] sm:text-[11px] font-light tracking-[0.18em] uppercase text-ink-500 dark:text-primary-300">{{ name_parts[1:]|join(' ') }}</span>
-          {% endif %}
-        </span>
+        {# Full lockup: the wordmark is part of the artwork, so no adjacent text name (it
+           would state the clinic name twice). Dark mode swaps to a light-ink copy because
+           the source wordmark is dark navy. #}
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="{{ clinic_name }}" class="h-9 lg:h-11 w-auto shrink-0 object-contain dark:hidden">
+        <img src="{{ url_for('static', filename='images/logo-dark.png') }}" alt="{{ clinic_name }}" class="h-9 lg:h-11 w-auto shrink-0 object-contain hidden dark:block">
       </a>
 
       <div class="hidden xl:flex items-center gap-6 text-[13px] font-light lowercase tracking-tight whitespace-nowrap text-ink-500 dark:text-primary-300">

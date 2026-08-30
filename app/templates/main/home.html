@@ -49,11 +49,27 @@
       <h1 class="display-xl text-center lg:text-right mt-2 lg:mt-10 lg:ml-auto lg:max-w-[58%]">
         <span class="hl-soft">technology for a</span> <span class="hl-strong">healthy</span>
       </h1>
+      {# Mobile keeps the sentence intact: without the lg: two-column grid below, the
+         closing line would otherwise land under the CTAs, far from the rest of it.
+         aria-hidden here because the lg copy in the lower band carries it for AT. #}
+      <p class="display-xl text-center mt-2 lg:hidden" aria-hidden="true">
+        <span class="hl-soft">and</span> <span class="hl-strong">confident smile</span>
+      </p>
     </div>
 
     <!-- Lower band: CTA left, closing headline right, clearing the implant. -->
     <div class="relative z-10 mt-[15rem] sm:mt-[17rem] lg:mt-[19rem] grid lg:grid-cols-2 gap-10 items-end reveal">
       <div>
+        {# Full lockup (mark + wordmark). The navbar/footer carry the mark alone beside a
+           text name; here there is room for the wordmark to actually be legible.
+           Two variants: the source wordmark is dark navy, unreadable on the dark hero, so
+           dark mode gets a light-ink copy. Only one is ever rendered. #}
+        <img src="{{ url_for('static', filename='images/logo-stacked.png') }}"
+             alt="{{ clinic_name }}"
+             class="w-56 lg:w-64 h-auto mb-6 dark:hidden">
+        <img src="{{ url_for('static', filename='images/logo-stacked-dark.png') }}"
+             alt="{{ clinic_name }}"
+             class="w-56 lg:w-64 h-auto mb-6 hidden dark:block">
         <p class="text-[11px] font-light tracking-[0.18em] uppercase text-ink-500 dark:text-primary-300">
           Trusted in Islamabad Since 2014
         </p>
@@ -71,7 +87,7 @@
       </div>
 
       <div class="lg:text-right">
-        <h2 class="display-lg">
+        <h2 class="display-lg sr-only lg:not-sr-only">
           <span class="hl-soft">and</span> <span class="hl-strong">confident smile</span>
         </h2>
         {# Real patient faces from the testimonials table, not stock avatars — the social
