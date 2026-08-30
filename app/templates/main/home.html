@@ -103,7 +103,11 @@
      service_icon glyphs and featured_services — no new route data. Scrolls
      horizontally on narrow screens rather than wrapping into a tall block. #}
   {% if featured_services %}
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 lg:pb-16">
+  {# min-w-0: .hero-cinematic is a column flex container, so this wrapper defaults to
+     min-width:auto and stretches to the icon row's full width (612px on a 390px
+     screen). The <ul> then never overflows, overflow-x-auto never engages, and the
+     section's overflow-hidden just clips the last services off permanently. #}
+  <div class="relative w-full min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 lg:pb-16">
     <ul class="stagger flex gap-5 sm:gap-7 overflow-x-auto lg:justify-center snap-x snap-mandatory scrollbar-none -mx-1 px-1 pb-2">
       {% for service in featured_services[:6] %}
       <li class="reveal reveal-3d-y shrink-0 snap-start">

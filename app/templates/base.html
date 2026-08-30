@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}{{ clinic_name }} — Premium Dental Care{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}{{ clinic_name }} offers premium, modern dental care including implants, whitening, orthodontics, and cosmetic dentistry.{% endblock %}">
-<link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
-<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo.png') }}">
+<link rel="icon" href="{{ url_for('static', filename='images/logo-mark.png') }}" type="image/png">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo-mark.png') }}">
 
-{% set social_image = url_for('static', filename='images/logo.png', _external=True) %}
+{% set social_image = url_for('static', filename='images/logo-social.png', _external=True) %}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{ clinic_name }}">
 <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">

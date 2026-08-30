@@ -1,15 +1,9 @@
 <footer class="relative isolate overflow-hidden bg-ink-900 text-slate-300 mt-24 border-t-2 border-primary/40">
   <div class="stagger max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
     <div class="reveal">
-      <a href="{{ url_for('main.home') }}" class="group flex items-center gap-2.5 font-heading text-white mb-4 hover:opacity-80 transition-opacity">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="{{ clinic_name }} logo" class="w-10 h-10 shrink-0 object-contain group-hover:scale-105 transition-transform duration-300">
-        {% set name_parts = clinic_name.rsplit(' ', 2) %}
-        <span class="leading-tight">
-          <span class="block font-bold text-lg">{{ name_parts[0] }}</span>
-          {% if name_parts|length > 1 %}
-          <span class="block text-xs font-semibold tracking-[0.15em] uppercase text-secondary">{{ name_parts[1:]|join(' ') }}</span>
-          {% endif %}
-        </span>
+      {# Footer is always bg-ink-900, so it always takes the light-ink lockup. #}
+      <a href="{{ url_for('main.home') }}" class="group flex items-center font-heading mb-4 hover:opacity-80 transition-opacity">
+        <img src="{{ url_for('static', filename='images/logo-lockup-light.png') }}" alt="{{ clinic_name }} — Maxillofacial Surgery" class="h-12 w-auto shrink-0 object-contain group-hover:scale-105 transition-transform duration-300">
       </a>
       <p class="text-sm text-slate-400 leading-relaxed mb-5">A specialist-led dental studio combining digital diagnostics, gentle technique and genuinely warm care.</p>
       <div class="flex items-center gap-3">
@@ -69,7 +63,10 @@
   </div>
 
   <div class="border-t border-white/10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+    {# pb-28 on mobile keeps the copyright clear of the fixed FAB stack (WhatsApp /
+       voice / back-to-top, tallest at bottom-24 + h-12). Desktop has room beside
+       them, so the extra padding drops off at sm. #}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 sm:pb-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
       <p>&copy; {{ current_year }} {{ clinic_name }}. All rights reserved.</p>
       <p>Designed with care for healthier smiles.</p>
     </div>

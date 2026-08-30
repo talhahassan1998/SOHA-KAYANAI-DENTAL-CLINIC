@@ -108,9 +108,10 @@ Screenshots land in `.claude/skills/run-dentalclinic/shots/`:
 
 | file | what it shows |
 |---|---|
-| `01-home.png` | home page, full page, after scrolling to trigger reveal/counter animations |
-| `02-book-form.png` | the booking form before submission |
-| `03-book-result.png` | the "Thank you" confirmation page after a real POST |
+| `01-home.png` | home page, full page, with reveal/counter animations forced to their final state |
+| `02-book-form.png` | the booking form on load — date not yet picked, so the right-hand fields are still gated |
+| `02b-book-filled.png` | the form filled in, after date/gender/time have been clicked |
+| `03-book-result.png` | the "Booking received" confirmation page after a real POST |
 
 Override target/output with env vars: `BASE=http://127.0.0.1:5001 OUT=/tmp/shots node .claude/skills/run-dentalclinic/browser_smoke.js`.
 
@@ -159,13 +160,26 @@ No automated test suite in this repo (per CLAUDE.md) — `smoke.sh` and
   (`smoke.sh` already does this); go by the port's listening PID via
   `netstat -ano`, not `$!`.
 - **Home page stats and scroll-reveal sections render as `0+` / blank on
-  a naive screenshot.** `app/static/js/main.js` animates `[data-counter]`
-  spans and reveals `.reveal`-class sections via `IntersectionObserver`
-  — they only fire once the element scrolls into the viewport. A
-  `fullPage: true` screenshot taken right after `goto()` without
-  scrolling captures every below-the-fold section still at its initial
-  `0` / hidden state. `browser_smoke.js` scrolls the page in 400px steps
-  before screenshotting to trigger these.
+  a naive screenshot — and scrolling alone does NOT fix it.**
+  `app/static/js/main.js` animates `[data-counter]` spans (observer at
+  `threshold: 0.4`, 2.2s count-up) and reveals `.reveal` sections
+  (`threshold: 0.1`) via `IntersectionObserver`. Many `.reveal` cards sit
+  inside **horizontal scroll-snap carousels** (`.snap-start`), so anything
+  parked off to the right never intersects no matter how far you scroll
+  vertically — measured 68 of 70 `.reveal` elements stuck at `opacity: 0`
+  after a full vertical scroll pass. `browser_smoke.js` therefore adds
+  `.in-view` to every `.reveal` and writes each `[data-counter]`'s final
+  value directly, then waits 1.2s for the transitions. Do the same in any
+  new screenshot script; a scroll loop is not sufficient.
+- **The booking form is a two-step Alpine.js flow.**
+  `app/templates/partials/appointment_form.html` wraps the detail fields in
+  `<fieldset :disabled="!selectedDate">`, so `#full_name` and friends are
+  present but *not enabled* until a date is clicked in the calendar —
+  Playwright's `fill()` will time out with "element is not enabled" against
+  a fresh page load. `preferred_date`/`preferred_time` are `sr-only` inputs
+  bound with `x-model`, and date/time/**gender** are all button groups:
+  click them, don't `fill()`/`selectOption()` them. Gender is required and
+  silently fails validation ("Please select a gender.") if skipped.
 - **Playwright's default `headless: true` needs the separate
   `chromium-headless-shell` package**, not just `chromium` — running only
   `npx playwright install chromium` downloads the full Chrome-for-Testing

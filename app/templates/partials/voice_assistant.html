@@ -100,7 +100,7 @@
   <!-- Launcher -->
   <button type="button" @click="open ? close() : open = true"
           :aria-expanded="open" aria-label="Talk to the clinic assistant"
-          class="group fixed bottom-24 right-6 z-40 w-12 h-12 rounded-full bg-primary text-ink-900 shadow-lg grid place-items-center transition-all duration-300 hover:bg-primary-600 hover:scale-110 hover:shadow-xl hover:shadow-primary/40 active:scale-95">
+          class="group fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary text-ink-900 shadow-lg grid place-items-center transition-all duration-300 hover:bg-primary-600 hover:scale-110 hover:shadow-xl hover:shadow-primary/40 active:scale-95">
     <span x-show="connected" x-cloak class="absolute inset-0 rounded-full bg-primary/40 animate-ping"></span>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="relative w-5 h-5">
       <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>

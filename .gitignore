@@ -17,3 +17,7 @@ Thumbs.db
 node_modules/
 .vscode/
 .idea/
+
+# Local MCP server config (machine-specific absolute paths)
+.mcp.json
+.mcp.json.bak
