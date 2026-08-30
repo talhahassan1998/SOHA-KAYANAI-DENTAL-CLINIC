@@ -105,9 +105,15 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL"
-    ) or f"sqlite:///{BASE_DIR / 'instance' / 'dental_clinic.db'}"
+
+    database_url = os.environ.get("DATABASE_URL")
+
+    if database_url and database_url.startswith("postgresql://"):
+        database_url = database_url.replace(
+            "postgresql://", "postgresql+psycopg://", 1
+        )
+
+    SQLALCHEMY_DATABASE_URI = database_url or f"sqlite:///{BASE_DIR / 'instance' / 'dental_clinic.db'}"
 
     @staticmethod
     def init_app(app):
