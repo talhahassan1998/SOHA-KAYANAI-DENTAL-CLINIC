@@ -91,9 +91,13 @@ class ProductionConfig(Config):
         import logging
         from logging.handlers import RotatingFileHandler
 
-        log_dir = BASE_DIR / "logs"
-        log_dir.mkdir(exist_ok=True)
-        handler = RotatingFileHandler(log_dir / "dental_clinic.log", maxBytes=1_000_000, backupCount=5)
+        # Serverless hosts (Vercel/Lambda) have a read-only filesystem — log to stdout there.
+        if os.environ.get("VERCEL"):
+            handler = logging.StreamHandler()
+        else:
+            log_dir = BASE_DIR / "logs"
+            log_dir.mkdir(exist_ok=True)
+            handler = RotatingFileHandler(log_dir / "dental_clinic.log", maxBytes=1_000_000, backupCount=5)
         handler.setLevel(logging.INFO)
         handler.setFormatter(logging.Formatter(
             "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
