@@ -7,7 +7,7 @@ from config import config
 from app.extensions import db, migrate, csrf, mail, cache
 
 
-def create_app(config_name="default"):
+def create_app(config_name="production"):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
