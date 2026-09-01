@@ -16,22 +16,12 @@ def _send_async(app, msg):
             app.logger.exception("Failed to send email: %s", msg.subject)
 
 
-# def _dispatch(msg):
-#     app = current_app._get_current_object()
-#     thread = threading.Thread(target=_send_async, args=(app, msg))
-#     thread.start()
-#     return thread
 def _dispatch(msg):
     app = current_app._get_current_object()
+    thread = threading.Thread(target=_send_async, args=(app, msg))
+    thread.start()
+    return thread
 
-    with app.app_context():
-        try:
-            mail.send(msg)
-            app.logger.info("Email sent successfully: %s", msg.subject)
-            return True
-        except Exception:
-            app.logger.exception("Failed to send email: %s", msg.subject)
-            return False
 
 def send_appointment_confirmation(appointment):
     """Email the patient confirming their appointment request was received."""
